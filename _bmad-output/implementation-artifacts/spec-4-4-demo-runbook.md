@@ -2,7 +2,7 @@
 title: 'Seed fake GitLab 16.11 demo environment (Story 4.4 phase 1)'
 type: 'chore'
 created: '2026-11-02'
-status: 'in-progress'
+status: 'done'
 route: 'dispatch'
 review_loop_iteration: 1
 context: []
@@ -60,11 +60,11 @@ baseline_commit: '417ef0e6f9de5d3b2f262f123b7e2adfda73fdfa'
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] `.gitignore` -- create ignoring `test-gitlab-server/.env`, `volumes/`, `backups/` -- secrets and runtime data never committed (first, before setup creates them)
-- [ ] `test-gitlab-server/docker-compose.yml` -- create pinned 16.11 CE service with co-located bind-mount volumes + env-overridable ports (defaults 8080/8443/2222) -- reproducible fake host, one folder to manage
-- [ ] `test-gitlab-server/setup.sh` -- create idempotent bootstrap (prereqs → compose up → 10-min health wait → rails-runner tokens → seed/demo + CI → fresh backup → smoke clone/push → print exports) -- one-command seed
-- [ ] `test-gitlab-server/.env.example` + `test-gitlab-server/README.md` -- document placeholders + quick start, layout, all 7 exports, teardown -- demo settings live with the env
-- [ ] `runner/upgrade-gitlab.sh` -- run `--plan` rehearsal against the seed (execute only, never edit) -- read-only proof the seed satisfies "what the demo host needs"
+- [x] `.gitignore` -- create ignoring `test-gitlab-server/.env`, `volumes/`, `backups/` -- secrets and runtime data never committed (first, before setup creates them)
+- [x] `test-gitlab-server/docker-compose.yml` -- create pinned 16.11 CE service with co-located bind-mount volumes + env-overridable ports (defaults 8080/8443/2222) -- reproducible fake host, one folder to manage
+- [x] `test-gitlab-server/setup.sh` -- create idempotent bootstrap (prereqs → compose up → 10-min health wait → rails-runner tokens → seed/demo + CI → fresh backup → smoke clone/push → print exports) -- one-command seed
+- [x] `test-gitlab-server/.env.example` + `test-gitlab-server/README.md` -- document placeholders + quick start, layout, all 7 exports, teardown -- demo settings live with the env
+- [x] `runner/upgrade-gitlab.sh` -- run `--plan` rehearsal against the seed (execute only, never edit) -- read-only proof the seed satisfies "what the demo host needs"
 
 **Acceptance Criteria:**
 - Given a fresh checkout, when setup completes, then compose is healthy, health endpoints green, and tokens work (version API + runners list + clone/push).
@@ -80,9 +80,9 @@ baseline_commit: '417ef0e6f9de5d3b2f262f123b7e2adfda73fdfa'
 
 ## Session handoff (2026-11-02)
 
-- DONE: `test-gitlab-server/` built (compose, setup.sh, .env.example, README, .gitignore); `compose config -q` + `bash -n` pass. Spec status: in-progress, step-03 implement.
-- WAITING ON: user to run `cp test-gitlab-server/.env.example test-gitlab-server/.env`, set `GITLAB_ROOT_PASSWORD`, then `./test-gitlab-server/setup.sh` (~1.3GB pull, ~5-10 min boot).
-- NEXT SESSION: ask user if setup finished; verify `curl $GITLAB_URL/-/health` + `/health_check`, then `./runner/upgrade-gitlab.sh --plan` with the printed exports; on green, seed phase is done — resume deferred demo (live hops + injection) from deferred-work.md.
+- DONE (seed live): user ran `setup.sh` — GitLab 16.11.10 up, `seed/demo` on main with CI, tokens in `.env`, fresh backup; `healthcheck.sh` 6/6 OK; `--plan` rehearsal exit 0 (pre-health/pre-migrations/pre-backup pass, nothing changed). Code review round 2 done: 53 findings triaged (2 medium + 14 low patched and re-verified live, 1 high deferred — secrets in pushed history 9311a0d need rotation decision). Spec status: in-review.
+- WAITING ON: user to decide the deferred secrets rotation (see deferred-work.md); worktree committed locally by the build run (push when ready).
+- NEXT: resume deferred demo (live hops 16.11→17.1→17.3→17.5 + hang injection + 4.4 evidence) from deferred-work.md.
 
 ## Spec Change Log
 
@@ -91,6 +91,57 @@ baseline_commit: '417ef0e6f9de5d3b2f262f123b7e2adfda73fdfa'
 ## Review Triage Log
 
 - HIGH 1-3, MEDIUM 5: valid — fixed in spec + implementation. MEDIUM 4/6/7, LOW 8-12: valid nits — fixed. No false findings.
+
+### Code review (round 2, 2026-11-02; verification-gap layer: no findings)
+
+Blind layer:
+- B1 spec handoff vs [x] tasks — low — handoff text is stale (user did run setup; live run proven) but fix is a spec edit; rejected per rule, handoff refreshed separately.
+- B2 healthcheck.sh undocumented — low — header comment states its role but README/spec never point to it; patch (README one-liner; spec side dropped).
+- B3 .env was committed with live secrets — high — 9311a0d is pushed to origin with root password + tokens; rotation + history decision needs the human; deferred + flagged.
+- B4 exports vs .env.example mismatch — false — names match demo-runbook Settings exactly; COMPOSE_FILE/BACKUP_PATH are derived outputs by design.
+- B5/E19 URL/port desync unchecked — medium — overriding HTTP port without editing URL breaks external_url; failure surfaces only as a 10-min timeout; patch (consistency halt).
+- B6 df measures repo fs, not docker storage — low — true on Desktop/remote daemons but fine as a proxy on this host; proper fix complex; rejected.
+- B7/E2 port check skipped when project exists — low — deliberate idempotency trade-off; docker still fails loudly on real conflicts; rejected.
+- B8 HTTP probe of SSH port — false — outcomes correct: free→curl exit 7, anything else→busy halt; no wrong verdict reachable.
+- B9 set_env sed injection — low — real fragility but unreachable with GitLab's token charset; patch (escape replacement; behavior-preserving).
+- B10/E25 fixed /tmp/seed-token.err — low — concurrent runs clobber each other; patch (mktemp).
+- B11/E11 token embedded in clone URL — low — token charset is URL-safe so breakage unreachable; ps exposure transient on single-user box; swapping proven oauth2 auth is riskier than the defect; rejected.
+- B12 GID grep whitespace — false — disproven by the successful live run; GitLab emits compact JSON.
+- B13 no 16.11.z version assertion — low — pin is explicit in compose; drift is self-inflicted and --plan surfaces it; rejected.
+- B14 :Z bind mounts — false — required on this SELinux host (proven by live run); ignored on Docker Desktop.
+- B15/E22 README cwd/teardown ambiguity — low — both setup paths work, but teardown from root confuses; rm -rf of absent paths is a no-op so no data loss; patch (qualify with cd).
+- B16 backup never exercised — false — --plan ran the pre-backup check green; hand-made fake backup is the stated intent.
+- B17 wide monitoring_whitelist — low — localhost demo with non-sensitive endpoints; narrowing knobs add surface for no gain; rejected.
+
+Edge layer:
+- E1/E18 non-numeric port — low — curl exit 3 misreported as busy; SSH interpolation would break ruby config; patch (numeric guard on all three ports).
+- E3 daemon-down raw failure — low — docker's own error is clear but a named halt is cheaper to diagnose; patch (docker info guard).
+- E4 dead container polls 10 min — low — slow but still halts with log tail; per-iteration exit checks add noise; rejected.
+- E5 logs failure skips named halt — low — under set -e a failing logs call exits before halt; patch (|| true).
+- E6 BSD sed -i — low — out of scope: intent is this-machine Linux demo; rejected.
+- E7 transient 500 orphans tokens — low — duplicates harmless; re-runs converge on a working token; rejected.
+- E8 transient GET then POST 409 — low — rare race; idempotent re-run converges; rejected.
+- E9 pre-existing master-branch project — low — out-of-flow precondition; rejected.
+- E10 clone/push stderr discarded — medium — spec matrix requires naming auth/repo cause; raw stderr would leak the token so redaction is required; patch (redacted tails for clone + push).
+- E12 clone checks out master — false — project is created with default_branch=main and clone follows remote HEAD; proven live.
+- E13 future BACKUP_CREATED_AT — low — needs clock tampering and self-heals; rejected.
+- E14/E36 unquoted export printf — low — safe on this box but %q is zero-risk hardening; patch.
+- E15 decorative COMPOSE_SERVICE/SEED vars in .env.example — low — nothing reads them; prints carry the true constants; patch (delete the two lines).
+- E16 healthcheck SKIP without token — low — deliberate explicit SKIP alongside visible endpoint results; rejected.
+- E17 no smoke-token check — low — naive probe wrongly FAILs on valid minimal-scope tokens (403); correct check subtle; setup covers smoke at seed time; rejected.
+- E20 short root password idles 10 min — low — plausible typo with slow failure; patch (length guard, min 8).
+- E21 df parsing fragility — low — wrapped output mis-shifts fields; patch (df -kP).
+- E23 README hardcodes :8080 — low — port-overriding users pasting verbatim misconfigure; patch (derive URL from .env in the example).
+- E24 volumes root-owned by daemon — low — host wipe may need sudo; patch (mkdir -p before up).
+- E26 raw compose-up failure — low — docker errors are informative but a SETUP-HALT wrapper keeps halt discipline; patch.
+- E27 mktemp failure raw exit — low — non-scenario (/tmp broken); rejected.
+- E28 healthcheck without compose v2 — low — same-host assumption; setup already gates compose; rejected.
+- E29 deleted .env.example raw cp error — low — self-inflicted; cp's error is clear; rejected.
+- E30/E31 .env syntax error raw abort — low — self-inflicted edit error; shell names the line; rejected.
+- E32 whitespace-padded placeholder — low — negligible on localhost demo; rejected.
+- E33 second checkout name clash — low — out of scope: single seed per box; rejected.
+- E34 backups/latest as real dir — low — needs manual tampering; rejected.
+- E35 backup-before-smoke claim — false — premise inverted: smoke clone/push (lines 100-108) runs before backup (110-123).
 
 ## Verification
 
