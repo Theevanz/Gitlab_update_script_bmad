@@ -43,7 +43,7 @@ All must hold:
 - `/health_check` reports `success`; on failure the log carries the gem's failure message (e.g. database unreachable).
 - `/health_check/migrations` confirms no leftover unfinished migrations from a prior stop.
 - Batched background migrations all `finished`, via the `gitlab-rake gitlab:background_migrations:status` table (single signal; zero rows means clear).
-- Backup-contract verification passes (see `backup-contract.md`).
+- Backup-contract verification passes (see `backup-contract.md`; skipped loudly under `--nobackup`).
 - CI/CD paused: runners paused, new jobs blocked, running jobs finished.
 
 ## Health-during (inside each stop's migration wait)

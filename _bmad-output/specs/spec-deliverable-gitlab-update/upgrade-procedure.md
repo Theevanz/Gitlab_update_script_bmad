@@ -9,7 +9,7 @@ Step 1, gather pre-upgrade information (read-only recon — learn, don't touch):
 1. Detect current version; review the release/maintenance policy and the upgrade notes for every version to be passed (compatibility, deprecations).
 2. Check OS compatibility with the target version.
 3. Determine the upgrade path: next required stop after the detected current version from vendored `upgrade_path.yml` (major.minor only, no patch versions, no conditional-stop logic), then resolve the target to its latest patch (`X.Y.z` rule via Docker Hub tags API or packages page) and pin the exact image tag; every stop is taken as a normal stop including conditional ones. One stop per run: the operator re-runs to advance further. Demo: start at 16.11 latest patch, follow required stops toward the current 17.x chain — 2–3 real stops across the major boundary over repeated runs, never one jump. A `comments:` note on the target is shown with the plan and operator-acknowledged before any container change.
-4. Create the rollback plan and verify the backup exists per `backup-contract.md`. Halt if absent.
+4. Create the rollback plan and verify the backup exists per `backup-contract.md` (unless `--nobackup` is passed for pre-producer testing). Halt if absent.
 
 Step 2, perform pre-upgrade steps (shortly before the upgrade — act):
 

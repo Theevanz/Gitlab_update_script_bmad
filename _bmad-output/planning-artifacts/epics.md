@@ -21,25 +21,50 @@ This document provides the complete epic and story breakdown for deliverable-git
 
 ### Functional Requirements
 
-FR1: Operator obtains the next required stop with its exact pinned image: the script detects the current version from the live instance via `GET /api/v4/version` (AD-3 normalization) and prints the one-hop plan to the next required stop per the vendored `upgrade_path.yml`, resolved to an exact `X.Y.z` latest-patch tag.
-FR2: Stop list comes from the vendored `upgrade_path.yml` (major.minor only) via a short grep/sed pipeline over the pinned YAML shape; anything else in the file dies; every stop is taken as a normal stop including conditional ones.
-FR3: Latest-patch pin per stop via the Docker Hub tags API (`name=<major.minor>&page_size=100`, follow `next`, filter `^<M>.<m>.[0-9]+-(ce|ee).0$`, POSIX numeric patch sort, pick max); Hub failure or empty set dies with no retry or fallback.
-FR4: The target note (if non-blank) is shown with the plan and acknowledged up front via the exact prompt `Type ACK <stop> to proceed:` before any pause/backup; a live run without a TTY halts with GATE=plan; each ack is logged.
-FR5: Planning is gated: before resolving the target, the run asserts no leftover unfinished migrations via the rake signal and halts with GATE=plan if any remain; halt stating already-at-head when no entry follows the current version.
-FR6: Read-only `--plan` mode performs any read, runs the same gated planning (dying in-format if unplannable), and prints the one-hop plan plus the fixed checklist in stable order; never requires a TTY or acknowledgement.
-FR7: Pre-upgrade gate (before any container change): `/-/health` OK, `/health_check` success, no leftover unfinished migrations, rake table all `finished`, backup-contract verification passes, CI paused/drained.
-FR8: Backup verification (~15 lines) against the pinned demo layout: `$BACKUP_PATH/` holds `data/`, `secrets/`, `BACKUP_CREATED_AT` (epoch seconds); fresh means `RUN_START - BACKUP_CREATED_AT <= 86400`; halt naming the missing or stale item.
-FR9: CI quiet via the Runners API: enumerate `GET /runners/all?per_page=100` following `Link rel="next"`, pause each via `PUT --form paused=true` (zero is a logged no-op), drain until zero running jobs across all runners (10 s poll with heartbeat, no timeout), assert-all-paused before mutate; unpause-all only on the success path at proceed-gate step 6.
-FR10: Mutate scoped to `$COMPOSE_SERVICE`: `cp` the compose file beside itself as `$F.bak-<target>-<epoch>` (kept, never auto-restored), `sed` anchored to the service stanza asserting exactly one `image:` line, `pull`, then `down` and `up -d` (never `-v`); identical tag proceeds as a logged idempotent re-run.
-FR11: Health-during monitor: 10 s heartbeat log entries with runtime telemetry (Layer-0 state, `/-/health`, `/-/liveness`, `/health_check/database`, `/health_check/cache`, cpu/mem/block-IO/net-IO from one `docker stats --no-stream --format` sample) plus rake finished-count deltas; readiness excluded (expected red).
-FR12: Hang verdict: 30 consecutive 10 s heartbeats with zero rake finished-count movement AND cpu integer-part zero AND block-I/O raw string unchanged halts with GATE=monitor; any finished movement resets the counter; liveness 503 or failing `/health_check/database`/`/cache` halts immediately.
-FR13: Proceed gate in fixed order: (1) version match with edition re-assert, (2) rake all `finished`, (3) `/health_check` success, (4) `/-/readiness?all=1` green with per-service statuses recorded, (5) seeded-project `main` clone-and-push smoke test, (6) full health re-check then unpause-all (success path only).
-FR14: Close-out on success: full Phase 1 health checks re-run, runners unpaused, jobs flowing; on failure: diagnostics bundle plus 4-line rollback story, runners left paused.
-FR15: Failure bundle: fetch standalone `gitlabsos.rb` pinned to toolbox SHA `cb73cacc` at failure time, `docker cp` in and run with embedded ruby to `./failure-bundle-<target>-<epoch>/`; on fetch/run failure fall back to the native manifest (logs tail, inspect, replayed readiness/health lines, best-effort rake) with logged degradation; bundle always includes recorded readiness per-service statuses plus `/health_check` failure messages.
-FR16: Channel discipline: Layer 0 (`docker compose ps` + `docker inspect`, every `compose exec` with `-T`, every curl with `--max-time`) checked first; 10-minute grace for `/-/health` after `up -d`; refused/timeout resolves through container state; unexpected 404 with Running reads allowlist-suspect; Exited halts with exit code plus log tail; every poll logs Layer-0 state alongside HTTP results.
-FR17: Halt contract: one `die()` with fixed log format exiting non-zero, `die()` never mutates after detection except logs/bundle, dynamic `RUNNERS=`/`CONTAINER=` values, GATE vocabulary `validate plan pre pause mutate monitor proceed unpause closeout`, single-quoted values, `|| die` on fallible external commands, shape-assert-die on parses, never retry `up` in the down window, INT/TERM trap into `die()` with the current-phase GATE.
-FR18: Config via env vars with strict startup validation (required: `GITLAB_URL GITLAB_ADMIN_TOKEN GITLAB_SMOKE_TOKEN GITLAB_COMPOSE_FILE COMPOSE_SERVICE BACKUP_PATH SEED_PROJECT_PATH`; optional with defaults: `GITLAB_IMAGE_REPO LOG_FILE UPGRADE_PATH_FILE`); normalize URL/token; exclusive `mkdir` lock first with trap release; secrets via curl `-K` file (mode 600, trap rm), never argv; token map version+runners=admin, clone=smoke, health probes=none.
-FR19: JSON parsing via `jq -r` when present else `grep -oE` fallback, each probe defining its jq filter AND grep regex AND byte-identical bare output; `PARSER` detected once at startup, exported, never re-detected.
+_Ordered by runtime phase (validate → plan → pre → mutate → monitor → proceed → close-out), then cross-cutting substrate. FR numbers are stable IDs, not sequence._
+
+#### Validate
+
+FR18: Take all configuration from env vars and reject bad config before doing anything: strict startup validation (required: `GITLAB_URL GITLAB_ADMIN_TOKEN GITLAB_SMOKE_TOKEN GITLAB_COMPOSE_FILE COMPOSE_SERVICE BACKUP_PATH SEED_PROJECT_PATH` — except `BACKUP_PATH`, which under `--nobackup` may be unset and is not existence-checked; optional with defaults: `GITLAB_IMAGE_REPO LOG_FILE UPGRADE_PATH_FILE`); normalize URL/token; take the exclusive `mkdir` lock first with trap release; pass secrets via curl `-K` file (mode 600, trap rm), never argv; token map is version+runners=admin, clone=smoke, health probes=none. Runs once at startup — no phase re-validates config later.
+
+#### Plan
+
+FR1: Detect the live instance's exact current version by pinging `GET /api/v4/version` (AD-3 normalization) — this answers "where are we", not "where next": it yields the running version only, and the next required stop (FR2, as bare `X.Y`) plus its exact latest-patch pin (FR3, `X.Y.z`) are resolved downstream before the one-hop plan prints.
+FR2: Stop list comes from the vendored `upgrade_path.yml` — flat `major:`/`minor:` pairs (major.minor only, no patches), each optionally carrying a `comments:` note that is shown to the operator at plan time (see FR4); read via a short grep/sed pipeline over this pinned shape, and anything outside it dies; every stop is taken as a normal stop including conditional ones; halt stating already-at-head when no entry follows the current version (an outcome of lookup, not a separate check).
+FR3: Pick the latest patch per major.minor stop by polling the Docker Hub tags API (`name=<major.minor>&page_size=100`, follow `next`, filter `^<M>.<m>.[0-9]+-(ce|ee).0$`, POSIX numeric patch sort, pick max), resolving the bare `X.Y` from FR2 into an exact `X.Y.z` image tag; Hub failure or empty set dies with no retry or fallback.
+FR4: Require the operator to ACK the exact stop/version about to be installed: the target note (if non-blank) is shown with the plan, then a live run prompts exactly `Type ACK <stop> to proceed:` before any pause/backup and proceeds only on an exact match (a decline leaves zero side effects); `--plan` mode never prompts; a live run without a TTY halts with GATE=plan; each ack is logged.
+FR5: REMOVED — merged into FR7. Planning performs no health gating; the leftover-migration tripwire now lives only in the single pre-implementation gate. The already-at-head halt moved to FR2.
+FR6: Rehearse the FR7 suite read-only and stop before the first mutation (`--plan`): same resolution and plan print (FR1–FR3), every FR7 check that is readable without mutating (`/-/health`, `/health_check`, rake leftover, backup verification (skipped loudly under `--nobackup`), runners enumeration reported as "would pause N, M running" and never paused), the fixed checklist in stable order, halting in-format on the first failure — never an ACK, never a TTY, full config validated (a plan always preludes a live run); pause, drain, push, and container change never execute. FR6 defines no checks of its own — its list is FR7's.
+
+#### Pre-implementation gate
+
+FR7: The single pre-implementation gate — prove the instance is safe to touch before any container change: `/-/health` OK, `/health_check` success, no leftover unfinished migrations with rake table all `finished` (the only migration check in the run; planning performs no health gating), backup-contract verification passing (FR8, unless `--nobackup`), and CI paused/drained (FR9) — with health/backup/migration checks run before pausing to fail fast, and the full set re-asserted after the drain. Its read-only rehearsal is FR6.
+FR8: Verify the backup, never create it: `$BACKUP_PATH/` must hold `data/`, `secrets/`, and `BACKUP_CREATED_AT` (epoch seconds), fresh meaning `RUN_START - BACKUP_CREATED_AT <= 86400`; halt naming the missing or stale item — unless `--nobackup` is passed, which skips this check run-wide (gate, plan rehearsal, close-out re-check) with a loud logged warning, for testing before the backup producer exists. Backup creation itself is out of scope — FR8 only checks the artifact exists and is fresh, feeding the FR7 gate.
+FR9: Silence CI to produce the paused-and-drained state FR7 requires before mutate: enumerate `GET /runners/all?per_page=100` following `Link rel="next"`, pause each runner via `PUT --form paused=true` (zero runners is a logged no-op), drain until zero running jobs across all runners (10 s poll with heartbeat, no timeout), and assert-all-paused before mutate. FR9 pauses only — unpause-all happens solely on the success path at proceed-gate step 6 (FR13); on failure runners stay paused (FR14).
+
+#### Mutate
+
+FR10: Swap the docker compose container's version config to the FR3-pinned version, scoped strictly to `$COMPOSE_SERVICE`, in three steps: (1) back up the compose file beside itself as `$F.bak-<target>-<epoch>` (the compose text only — not the data, which FR8 verified; kept as evidence, never auto-restored); (2) mutate the service's `image:` line via `sed` anchored to the service stanza, asserting exactly one such line, writing the exact `X.Y.z` tag FR3 resolved; (3) `pull` the new image with docker tooling, then `down` and `up -d` (never `-v`). An identical tag proceeds as a logged idempotent re-run. FR10 changes the container and nothing else — no health verdicts (FR11/FR12), no proof of done (FR13).
+
+#### Monitor
+
+FR11: Watch GitLab migration health through the online wait: 10 s heartbeat log lines carrying GitLab application signals (HTTP `/-/health`, `/-/liveness`, `/health_check/database`, `/health_check/cache`, plus rake finished-count deltas via `exec -T`), with container-runtime telemetry from docker (Layer-0 state plus cpu/mem/block-IO/net-IO from one `docker stats --no-stream --format` sample) riding along as supporting context for FR12's verdict. Batched background migrations run while GitLab serves traffic, so HTTP is expected to answer — a 503 or backend failure halts per FR12; only readiness is excused (expected red). FR11 only observes and logs; the halt verdicts belong to FR12.
+FR12: Hang verdict from GitLab and docker status combined: a hang means zero rake finished-count movement for 30 consecutive 10 s heartbeats while docker shows an idle box (cpu integer-part zero AND block-I/O raw string unchanged) — flat progress plus flat resources, i.e. wedged rather than slow-but-working; any finished-count movement resets the counter. Separately, GitLab backend failures — liveness 503 or failing `/health_check/database`/`/cache` — halt immediately without waiting out the window. Both halt with `GATE=monitor`. FR12 judges the signals FR11 collects; it collects nothing itself.
+
+#### Proceed
+
+FR13: Prove GitLab works normally by running every check and testing the system: six steps in fixed order: (1) version match with edition re-assert, (2) rake all `finished`, (3) `/health_check` success, (4) `/-/readiness?all=1` green with per-service statuses recorded, (5) seeded-project `main` clone-and-push smoke test, (6) full health re-check then unpause-all — step 6 on the success path only. FR13 is the proof of done, not the close-out: success/failure wrap-up belongs to FR14.
+
+#### Close-out
+
+FR14: Confirm FR13's proof endures, then close out: on success re-run the full Phase 1 health checks (backup check skipped under `--nobackup`), confirm runners unpaused with jobs flowing — the live proof of normal use (the step-5 smoke test is not re-run; it proved the push path once); on failure leave runners paused and produce a diagnostics bundle (FR15) plus a 4-line rollback story. FR14 never retries or remediates — it reports the outcome and parks the instance in its safe end state.
+FR15: Capture a diagnostics bundle on failure: fetch standalone `gitlabsos.rb` pinned to toolbox SHA `cb73cacc` at failure time, `docker cp` it in and run it with embedded ruby into `./failure-bundle-<target>-<epoch>/`; if fetch or run fails, fall back to the native manifest (logs tail, inspect, replayed readiness/health lines, best-effort rake) with logged degradation. Either path always includes the recorded readiness per-service statuses plus `/health_check` failure messages. The bundle is evidence for a human — nothing in FR15 fixes or retries.
+
+#### Cross-cutting substrate
+
+FR16: Read the docker container status (Layer 0: `docker compose ps` + `docker inspect`) before trusting HTTP: every `compose exec` passes `-T`, every curl carries `--max-time`; allow a 10-minute grace for `/-/health` after `up -d`; resolve refused/timeout through container state; treat unexpected 404-with-Running as allowlist-suspect; halt with exit code plus log tail on Exited; log container state alongside every HTTP poll result. A cross-cutting reading rule for all probes — it performs no phase's checks itself.
+FR17: Halt loudly and uniformly through one `die()`: fixed log format, non-zero exit, single-quoted values, dynamic `RUNNERS=`/`CONTAINER=`, GATE vocabulary `validate plan pre pause mutate monitor proceed unpause closeout`; `die()` never mutates after detection except log/bundle writes; `|| die` on fallible external commands with shape-assert-die on parses; never retry `up` in the down window; INT/TERM trap routes into `die()` with the current-phase GATE. FR17 defines how every halt looks — the *when* belongs to each phase's own FR.
+FR19: Parse JSON portably: `jq -r` when present, else `grep -oE` fallback, with every probe defining both its jq filter AND its grep regex producing byte-identical bare output; `PARSER` is detected once at startup, exported, and never re-detected. Parsing mechanics only — each probe's fields and shape asserts live with that probe's FR.
 
 ### NonFunctional Requirements
 
@@ -58,7 +83,7 @@ NFR10: Health gates follow official endpoint semantics: comprehensive `/health_c
 
 - No starter template: greenfield single-file script per the structural seed (`runner/upgrade-gitlab.sh` + vendored `upgrade_path.yml` with source-URL + fetch-date header); Epic 1 Story 1 creates the skeleton, not a template install.
 - Source layout top-to-bottom: constants, strictness+trap, log/die, probes, phases in execution order, arg-parse, main.
-- Env validation order: lock first, then required-nonempty (URL scheme+host assert), then token-trim, then optional defaults, then file/dir existence (compose, YAML, backup), then edition/repo coherence.
+- Env validation order: lock first, then required-nonempty (URL scheme+host assert), then token-trim, then optional defaults, then file/dir existence (compose, YAML, backup unless `--nobackup`), then edition/repo coherence.
 - Hang-counter pseudocode: `flat=0`; each heartbeat: if `rake_delta>0` then `flat=0` else if cpu-int==0 and bio-string-unchanged then `flat+=1` else `flat=0`; `flat>=30` dies GATE=monitor.
 - Failure-path exec lines: `docker cp /tmp/gitlabsos.rb $CID:/tmp/gitlabsos.rb`, `compose exec -T $SVC /opt/gitlab/embedded/bin/ruby /tmp/gitlabsos.rb -o /tmp/sos`, `docker cp $CID:/tmp/sos ./failure-bundle-<t>-<e>/`; any step failing falls to the native manifest.
 - Probe contracts are byte-identical jq/grep pairs (version, runners list/id-paused pairs, drain `[]`, rake pipe-shape, Hub tags name/next) per BUILD-NOTES.
@@ -71,38 +96,38 @@ None — Bash CLI tool with no UI. The only operator interaction is the `Type AC
 
 ### FR Coverage Map
 
-### FR Coverage Map
+_Same runtime-phase order as the inventory above._
 
-FR1: Epic 1 - Detect current version via API, print one-hop plan to next stop
-FR2: Epic 1 - Stop list from vendored YAML via grep/sed, every stop normal
-FR3: Epic 1 - Latest-patch pin via Hub tags API, fail-closed
-FR4: Epic 1 - Target note shown and ACKed up front before any change
-FR5: Epic 1 - Gated planning: leftover-migration assert, already-at-head halt
-FR6: Epic 1 - Read-only --plan mode with fixed checklist
-FR7: Epic 2 - Pre-upgrade health gate before any container change
-FR8: Epic 2 - Backup-contract verification (~15 lines)
-FR9: Epic 2 - CI quiet via Runners API (pause, drain, assert)
-FR10: Epic 3 - Mutate: compose backup, sed pin, pull, down/up
-FR11: Epic 3 - Health-during monitor: heartbeat telemetry + rake deltas
-FR12: Epic 3 - Hang verdict: 5-minute flat window halts, backends halt fast
-FR13: Epic 4 - Proceed gate: ordered 6-step proof of done + unpause
-FR14: Epic 4 - Close-out: re-check on success, bundle + rollback story on failure
-FR15: Epic 4 - Failure bundle: pinned gitlabsos fetch with native fallback
-FR16: Epic 1 - Layer-0-first channel discipline and probe library
-FR17: Epic 1 - Halt contract: die(), log format, GATE vocabulary, traps
-FR18: Epic 1 - Env-var config, strict startup validation, lock, secret handling
-FR19: Epic 1 - jq with grep fallback, byte-identical probe outputs
+FR18: Story 1.2 - Env-var config, strict startup validation, lock, secret handling
+FR1: Stories 1.5, 1.7 - Ping live version via API; anchors the printed one-hop plan (target resolved via FR2+FR3)
+FR2: Stories 1.4, 1.5 - Stop list + per-stop notes from vendored YAML via grep/sed, every stop normal, already-at-head halt
+FR3: Story 1.6 - Latest-patch pin via Hub tags API, fail-closed
+FR4: Story 1.7 - Target note shown and ACKed up front before any change
+FR5: REMOVED — merged into FR7
+FR6: Story 1.7 - --plan rehearses the FR7 suite read-only, stops before first mutation
+FR7: Story 2.3 - Single pre-implementation gate before any container change
+FR8: Stories 2.1, 4.2 - Backup-contract verification (~15 lines); skipped under --nobackup incl. close-out
+FR9: Story 2.2 - CI quiet via Runners API (pause, drain, assert)
+FR10: Story 3.1 - Mutate: compose backup, sed pin, pull, down/up
+FR11: Story 3.2 - Health-during monitor: heartbeat telemetry + rake deltas
+FR12: Story 3.3 - Hang verdict: 5-minute flat window halts, backends halt fast
+FR13: Stories 4.1, 4.2 - Proceed gate: ordered 6-step proof of done + unpause
+FR14: Stories 4.2, 4.3 - Close-out: re-check on success, bundle + rollback story on failure
+FR15: Story 4.3 - Failure bundle: pinned gitlabsos fetch with native fallback
+FR16: Story 1.3 - Layer-0-first channel discipline and probe library
+FR17: Story 1.1 - Halt contract: die(), log format, GATE vocabulary, traps
+FR19: Story 1.3 - jq with grep fallback, byte-identical probe outputs
 
 ## Epic List
 
 ### Epic 1: Safe Upgrade Planning
 
 The operator can validate the environment and preview the exact one-stop upgrade plan (current → pinned target) without changing anything, and the script refuses to plan an unsafe or unplannable run.
-**FRs covered:** FR1, FR2, FR3, FR4, FR5, FR6, FR16, FR17, FR18, FR19
+**FRs covered:** FR18, FR1, FR2, FR3, FR4, FR6, FR16, FR17, FR19
 
 ### Epic 2: Pre-Upgrade Protection
 
-The runner verifies the instance is healthy, backed up, and quiet before touching it — a sick, unbacked-up, or busy instance is never upgraded.
+The runner verifies the instance is healthy, backed up, and quiet before touching it — a sick, unbacked-up, or busy instance is never upgraded, unless testing with `--nobackup`.
 **FRs covered:** FR7, FR8, FR9
 
 ### Epic 3: One-Stop Upgrade with Hang-Aware Monitoring
@@ -119,11 +144,13 @@ The runner proves the stop is complete through the ordered proceed gate, resumes
 
 The operator can validate the environment and preview the exact one-stop upgrade plan (current → pinned target) without changing anything, and the script refuses to plan an unsafe or unplannable run.
 
-### Story 1.1: Loud, consistent halts with actionable log lines
+> Foundation epic: Stories 1.1–1.3 build the script skeleton and cross-cutting substrate (halt contract, config, probes) with no operator-visible value alone; the epic demos end-to-end once 1.4–1.7 land (`--plan` against the seeded instance).
+
+### Story 1.1: Script skeleton with loud, consistent halts
 
 As an operator,
-I want every failure to halt the run with one clear log line,
-So that I always know what failed, where, and what to do next.
+I want the single-file runner skeleton to exist, with every failure halting in one clear log line,
+So that later stories have a substrate to land on and I always know what failed, where, and what to do next.
 
 **Acceptance Criteria:**
 
@@ -144,6 +171,18 @@ So that I always know what failed, where, and what to do next.
 **When** the `|| die` pattern triggers
 **Then** the halt names the command and phase; in-pipeline search/parse uses `|| true` plus explicit shape-assert-die (FR17)
 
+**Given** a fresh checkout
+**When** this story lands
+**Then** `runner/upgrade-gitlab.sh` exists as the single self-contained runner plus vendored `runner/upgrade_path.yml` carrying a source-URL + fetch-date header; no sourced files, no starter template (AD-1, NFR1)
+
+**Given** the script source
+**When** read top-to-bottom
+**Then** layout is constants, strictness+trap, log/die, probes, phases in execution order, arg-parse, main; Bash 3.2+ running a POSIX-sh-compatible subset (no assoc arrays, mapfile, case-modification); toolchain is Bash + curl (+jq with grep fallback) + git + docker/compose CLIs only, no Python or other runtimes (NFR1, NFR3)
+
+**Given** any phase
+**When** it needs state
+**Then** it re-derives it from the live instance; there is no state file, no concurrency beyond the single-run lock, and re-runs are stateless (NFR8)
+
 ### Story 1.2: Strict startup configuration and single-run lock
 
 As an operator,
@@ -152,7 +191,7 @@ So that a typo never causes a half-upgraded instance.
 
 **Acceptance Criteria:**
 
-**Given** any required env var (`GITLAB_URL GITLAB_ADMIN_TOKEN GITLAB_SMOKE_TOKEN GITLAB_COMPOSE_FILE COMPOSE_SERVICE BACKUP_PATH SEED_PROJECT_PATH`) is missing or empty
+**Given** any required env var (`GITLAB_URL GITLAB_ADMIN_TOKEN GITLAB_SMOKE_TOKEN GITLAB_COMPOSE_FILE COMPOSE_SERVICE BACKUP_PATH SEED_PROJECT_PATH`) is missing or empty (`BACKUP_PATH` exempt under `--nobackup`)
 **When** the script starts
 **Then** it halts before any action, naming every missing variable (FR18)
 
@@ -167,6 +206,22 @@ So that a typo never causes a half-upgraded instance.
 **Given** probes need tokens
 **When** curl runs
 **Then** secrets travel via a curl `-K` file (mode 600, trap rm), never argv; version+runners use the admin token, clone uses the smoke token, health probes use none (FR18)
+
+**Given** the script starts
+**When** validation runs
+**Then** checks execute in fixed order: exclusive lock first, then required-nonempty (URL scheme+host assert), then token-trim, then optional defaults, then file/dir existence (`GITLAB_COMPOSE_FILE`, `UPGRADE_PATH_FILE`, `BACKUP_PATH` unless `--nobackup`), then edition/repo coherence (FR18)
+
+**Given** a referenced file or directory is missing
+**When** validation runs
+**Then** the run halts before any action, naming every missing path (FR18)
+
+**Given** `GITLAB_IMAGE_REPO`
+**When** edition coherence is checked at startup
+**Then** basename `gitlab-ce` means CE, `gitlab-ee` means EE, anything else dies (FR18, AD-3)
+
+**Given** the token contract
+**When** validation runs
+**Then** the admin token is documented as requiring `manage_runner` scope and the smoke token `write_repository`; a wrong-scoped token surfaces as a loud API halt, never silent misbehavior (FR18)
 
 ### Story 1.3: Probe library with Layer-0-first discipline
 
@@ -196,7 +251,19 @@ So that "down" is never confused with "sick".
 **When** results are logged
 **Then** Layer-0 state is recorded alongside the HTTP results; checks mutate nothing except the log append (FR16)
 
-### Story 1.4: Current version detection and next-stop lookup
+### Story 1.4: Stop-list extraction from vendored YAML
+
+As an operator,
+I want the required-stop list read from the vendored file with zero ambiguity,
+So that a malformed file halts loudly instead of mis-planning.
+
+**Acceptance Criteria:**
+
+**Given** the vendored `upgrade_path.yml`
+**When** extraction runs
+**Then** a short grep/sed pipeline reads `major:`/`minor:` pairs with each optional `comments:` kept next to its stop; anything else in the file dies; the file carries a source-URL + fetch-date header (FR2)
+
+### Story 1.5: Current version detection and next-stop lookup
 
 As an operator,
 I want the script to find my exact current version and the single next required stop,
@@ -206,21 +273,13 @@ So that no required stop is ever skipped.
 
 **Given** a running instance
 **When** version detection runs
-**Then** the current version comes from `GET /api/v4/version` with the admin token, both sides normalized (tag minus `-(ce|ee).0`, API value minus optional `-(ce|ee)`) and compared with exact equality; expected edition derives from the `GITLAB_IMAGE_REPO` basename (`gitlab-ce` false, `gitlab-ee` true, anything else dies) (FR1)
-
-**Given** the vendored `upgrade_path.yml`
-**When** extraction runs
-**Then** a short grep/sed pipeline reads `major:`/`minor:` pairs with each optional `comments:` kept next to its stop; anything else in the file dies; the file carries a source-URL + fetch-date header (FR2)
+**Then** the current version comes from `GET /api/v4/version` with the admin token, both sides normalized (tag minus `-(ce|ee).0`, API value minus optional `-(ce|ee)`) and compared with exact equality against the startup-derived expected edition (Story 1.2) (FR1)
 
 **Given** the detected current version
 **When** lookup runs
-**Then** the single next entry is selected with every stop taken as a normal stop (no conditional-stop logic); no following entry halts stating already-at-head (FR2, FR5)
+**Then** the single next entry is selected with every stop taken as a normal stop (no conditional-stop logic); no following entry halts stating already-at-head (FR2)
 
-**Given** planning starts
-**When** the leftover check runs
-**Then** any unfinished migrations via the rake signal halt with GATE=plan before the target is resolved (FR5)
-
-### Story 1.5: Latest-patch pin via Hub tags API
+### Story 1.6: Latest-patch pin via Hub tags API
 
 As an operator,
 I want the target pinned to the exact latest patch,
@@ -238,9 +297,9 @@ So that no version ever floats between plan and run.
 
 **Given** a pinned target
 **When** the plan prints
-**Then** the target is an exact `X.Y.z` tag resolvable to a published image (FR1, FR3)
+**Then** the target is an exact `X.Y.z` tag resolvable to a published image (FR3)
 
-### Story 1.6: Plan print, note acknowledgement, and read-only --plan
+### Story 1.7: Plan print, note acknowledgement, and read-only --plan
 
 As an operator,
 I want to see and approve the exact plan before anything changes — or preview it read-only,
@@ -262,11 +321,13 @@ So that upgrades never surprise me.
 
 **Given** `--plan` is passed
 **When** it runs
-**Then** only reads execute with the same gated planning (dying in-format if unplannable), printing the one-hop plan plus the fixed checklist in stable order; it needs only URL+repo+compose+YAML+admin token (FR6)
+**Then** only reads execute: the same resolution plus every readable pre-pause check from FR7 (`/-/health`, `/health_check`, rake leftover, backup verification (reported skipped under `--nobackup`), runners enumeration reported as would-pause and never paused), dying in-format on the first failure, printing the one-hop plan plus the fixed checklist in stable order; it validates the full config like a live run (FR6)
 
 ## Epic 2: Pre-Upgrade Protection
 
-The runner verifies the instance is healthy, backed up, and quiet before touching it — a sick, unbacked-up, or busy instance is never upgraded.
+The runner verifies the instance is healthy, backed up, and quiet before touching it — a sick, unbacked-up, or busy instance is never upgraded, unless testing with `--nobackup`.
+
+Runtime order: backup verification (2.1) and health pre-checks (2.3) run before pausing so a sick instance halts before CI is touched; pause and drain (2.2) follows; the final all-green assert (2.3) is the last step before any container change.
 
 ### Story 2.1: Backup-contract verification
 
@@ -288,6 +349,10 @@ So that there is always a rollback path.
 **When** the run halts
 **Then** Phase-1 recon never proceeds; the check stays ~15 lines, verification only, no backup implementation (FR8)
 
+**Given** `--nobackup` is passed
+**When** verification runs
+**Then** the check is skipped run-wide with a loud logged warning (`msg="backup verification skipped (--nobackup)"`); the run proceeds with no rollback path (FR8)
+
 ### Story 2.2: CI quiet via Runners API
 
 As an operator,
@@ -302,13 +367,13 @@ So that no job writes mid-migration.
 
 **Given** paused runners
 **When** draining runs
-**Then** the script polls every 10 s with heartbeat until zero running jobs across all runners, with no timeout; it dies only on query failure (FR9)
+**Then** the script polls every 10 s with heartbeat until zero running jobs across all runners, with no timeout; it dies with GATE=pause only on query failure (FR9)
 
 **Given** draining completes
 **When** the assert runs
 **Then** all-paused is asserted before mutate; unpause-all happens only at proceed-gate step 6 on the success path; the log notes pre-existing paused runners also resume (FR9)
 
-### Story 2.3: Pre-upgrade health gate
+### Story 2.3: Pre-upgrade health gate (final pre-mutate assert)
 
 As an operator,
 I want the full pre-upgrade gate enforced before any container change,
@@ -316,9 +381,13 @@ So that a sick instance is never upgraded.
 
 **Acceptance Criteria:**
 
-**Given** the gate runs
-**When** checks execute
-**Then** all must hold: `/-/health` returns `GitLab OK`, `/health_check` reports `success` (failure message logged), no leftover unfinished migrations, the rake table shows all `finished`, backup verification passes, and CI is paused and drained (FR7)
+**Given** the pre-gate phase starts, before any pause
+**When** health checks execute
+**Then** all must hold: `/-/health` returns `GitLab OK`, `/health_check` reports `success` (failure message logged), no leftover unfinished migrations, the rake table shows all `finished`, and backup verification (Story 2.1) passes or is skipped via `--nobackup`; any failure halts before CI is touched (FR7)
+
+**Given** pause and drain complete (Story 2.2)
+**When** the final assert runs
+**Then** every check above is re-asserted green plus CI paused and drained; the first failure halts (FR7)
 
 **Given** any check fails
 **When** the run halts
@@ -426,7 +495,7 @@ So that jobs never resume onto a broken instance.
 
 **Given** the run succeeds
 **When** close-out runs
-**Then** the full Phase 1 health checks re-run, runners are unpaused, and jobs flowing is confirmed (FR14)
+**Then** the full Phase 1 health checks re-run (backup check skipped under `--nobackup`), runners are unpaused, and jobs flowing is confirmed (FR8, FR14)
 
 ### Story 4.3: Failure bundle and rollback story
 

@@ -33,7 +33,7 @@ Gated sequential pipeline (phased script, fail-fast): a linear phase sequence wh
 
 ```mermaid
 flowchart LR
-    V[validate env+lock] --> P[plan: leftover-check + target + pin + note-ack]
+    V[validate env+lock] --> P[plan: target + pin + note-ack]
     P --> G1[pre-gate: health + backup]
     G1 --> Q[pause + drain + paused-assert]
     Q --> M[mutate: backup + sed + pull + down/up]
@@ -62,7 +62,7 @@ flowchart LR
 
 - **Binds:** CAP-1, CAP-3
 - **Prevents:** range-parameter drift, multi-stop jumps skipping migration windows, and advancing past an unfinished stop
-- **Rule:** each run advances exactly the next required stop after the detected current version; no range parameters; halt stating already-at-head when no entry follows; planning is gated — before resolving the target the run asserts no leftover unfinished migrations via the AD-10 rake signal and halts with GATE=plan if any remain
+- **Rule:** each run advances exactly the next required stop after the detected current version; no range parameters; halt stating already-at-head when no entry follows; planning performs no health gating — the single pre-implementation gate (health + backup + leftover + CI, AD-10/AD-13/AD-15 scope) runs before any container change
 
 ### AD-3 — Version from the live instance via API [ADOPTED]
 
@@ -110,13 +110,13 @@ flowchart LR
 
 - **Binds:** CAP-2, CAP-4, CAP-5
 - **Prevents:** verdict/delta source divergence and silent table-format mis-parses
-- **Rule:** `gitlab-rake gitlab:background_migrations:status` via `exec -T` is the single source at all four sites (pre-plan leftover, pre-gate leftover, monitor deltas, proceed verdict); parse contract is at least one `Database: <name>` banner with every other non-blank line shaped `status | csv`, else die; the verdict is every status `finished`; zero rows means clear; deltas come from finished-count movement; `/health_check/migrations` is observed and logged but never resets the hang timer
+- **Rule:** `gitlab-rake gitlab:background_migrations:status` via `exec -T` is the single source at all three sites (pre-gate leftover, monitor deltas, proceed verdict); parse contract is at least one `Database: <name>` banner with every other non-blank line shaped `status | csv`, else die; the verdict is every status `finished`; zero rows means clear; deltas come from finished-count movement; `/health_check/migrations` is observed and logged but never resets the hang timer
 
 ### AD-11 — Verification is seeded runs + read-only plan mode [ADOPTED]
 
 - **Binds:** all
 - **Prevents:** test-harness machinery obscuring the presentable script, and plan/live divergence
-- **Rule:** no unit harness; verification is runs against the seeded instance plus the injected-failure halt, with a read-only `--plan` mode that may perform any read and runs the same gated planning (dying in-format if unplannable); the plan is advisory — live runs always re-resolve; `--plan` needs URL+repo+compose+YAML+admin token and never a TTY; it prints the one-hop plan plus the fixed checklist in stable order
+- **Rule:** no unit harness; verification is runs against the seeded instance plus the injected-failure halt, with a read-only `--plan` mode that rehearses the single pre-implementation gate: it may perform any read — resolution plus every readable pre-pause check — dying in-format on the first failure, and stops before the first mutation; the plan is advisory — live runs always re-resolve; `--plan` validates the full config and never needs a TTY; it prints the one-hop plan plus the fixed checklist in stable order
 
 ### AD-12 — Failure bundle fetched at failure time with native fallback [ADOPTED]
 
@@ -140,7 +140,7 @@ flowchart LR
 
 - **Binds:** CAP-2
 - **Prevents:** contract-verification drift (layout/timestamp/run-start ambiguity)
-- **Rule:** the demo artifact is `$BACKUP_PATH/` holding `data/` plus `secrets/` plus `BACKUP_CREATED_AT` (epoch seconds); fresh means `RUN_START - BACKUP_CREATED_AT <= 86400` with `RUN_START` captured as the script's first statement and logged; the ~15-line check halts naming the missing or stale item; Phase-1 recon never proceeds without a valid backup; the demo backup is hand-made, stated not hidden
+- **Rule:** the demo artifact is `$BACKUP_PATH/` holding `data/` plus `secrets/` plus `BACKUP_CREATED_AT` (epoch seconds); fresh means `RUN_START - BACKUP_CREATED_AT <= 86400` with `RUN_START` captured as the script's first statement and logged; the ~15-line check halts naming the missing or stale item; Phase-1 recon never proceeds without a valid backup unless `--nobackup` is passed (run-wide skip, logged loudly, for testing before the producer exists); the demo backup is hand-made, stated not hidden
 
 ### AD-16 — Hang verdict from deltas plus telemetry; backends gate [ADOPTED]
 
@@ -207,7 +207,7 @@ runner/
 
 | Capability / Area | Lives in | Governed by |
 | --- | --- | --- |
-| CAP-1 next-stop plan | plan phase (leftover-check, extract, pin via Hub API, print, note ack) | AD-2, AD-3, AD-4, AD-5, AD-14 |
+| CAP-1 next-stop plan | plan phase (extract, pin via Hub API, print, note ack) | AD-2, AD-3, AD-4, AD-5, AD-14 |
 | CAP-2 pre-upgrade gate | pre-gate phase (health + backup contract) | AD-6, AD-7, AD-10, AD-13, AD-15 |
 | CAP-3 one stop advance | mutate phase (backup, sed, pull, down/up) | AD-2, AD-9 |
 | CAP-4 health-during | monitor phase (heartbeat + deltas + hang verdict) | AD-7, AD-10, AD-16 |

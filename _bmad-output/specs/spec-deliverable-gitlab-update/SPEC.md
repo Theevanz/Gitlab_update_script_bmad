@@ -22,8 +22,8 @@ Upgrading a Docker-based GitLab across major versions (16.x → 17.x) cannot be 
   - **intent:** Operator obtains the next required stop with its exact pinned image, so no required stop is skipped and no version floats.
   - **success:** Printed plan shows the one hop from detected current to the next required stop per `upgrade_path.yml`, and the target is an exact `X.Y.z` latest-patch tag resolvable to a published image.
 - **CAP-2**
-  - **intent:** Script verifies pre-upgrade health and backup-contract compliance before changing anything, so a sick or unbacked-up instance is never upgraded.
-  - **success:** With any failing health check or a backup artifact missing or older than 24 hours, the run halts before any container change and the log names each failing item.
+  - **intent:** Script verifies pre-upgrade health and backup-contract compliance before changing anything, so a sick or unbacked-up instance is never upgraded (outside `--nobackup` testing).
+  - **success:** With any failing health check or (without `--nobackup`) a backup artifact missing or older than 24 hours, the run halts before any container change and the log names each failing item.
 - **CAP-3**
   - **intent:** Script advances the instance exactly one required stop per run, so the stop gets its own migration window.
   - **success:** Each run changes the container image exactly once, to the planned target, with one migration wait; the operator re-runs to advance further, never two stops in a single run.
