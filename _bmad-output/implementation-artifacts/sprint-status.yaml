@@ -29,37 +29,38 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-02-2026 11:43
-last_updated: 11-02-2026 11:43
+last_updated: 11-02-2026 15:40
 project: deliverable-gitlab-update
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 development_status:
-  epic-1: backlog
-  1-1-script-skeleton-with-loud-consistent-halts: backlog
-  1-2-strict-startup-configuration-and-single-run-lock: backlog
-  1-3-probe-library-with-layer-0-first-discipline: backlog
-  1-4-stop-list-extraction-from-vendored-yaml: backlog
-  1-5-current-version-detection-and-next-stop-lookup: backlog
-  1-6-latest-patch-pin-via-hub-tags-api: backlog
-  1-7-plan-print-note-acknowledgement-and-read-only-plan: backlog
+  epic-1: done
+  1-1-script-skeleton-with-loud-consistent-halts: done
+  1-2-strict-startup-configuration-and-single-run-lock: done
+  1-3-probe-library-with-layer-0-first-discipline: done
+  1-4-stop-list-extraction-from-vendored-yaml: done
+  1-5-current-version-detection-and-next-stop-lookup: done
+  1-6-latest-patch-pin-via-hub-tags-api: done
+  1-7-plan-print-note-acknowledgement-and-read-only-plan: done
   epic-1-retrospective: optional
 
-  epic-2: backlog
-  2-1-backup-contract-verification: backlog
-  2-2-ci-quiet-via-runners-api: backlog
-  2-3-pre-upgrade-health-gate-final-pre-mutate-assert: backlog
+  epic-2: done
+  2-1-backup-contract-verification: done
+  2-2-ci-quiet-via-runners-api: done
+  2-3-pre-upgrade-health-gate-final-pre-mutate-assert: done
   epic-2-retrospective: optional
 
-  epic-3: backlog
-  3-1-one-stop-container-mutation: backlog
-  3-2-migration-wait-monitor-with-heartbeat-telemetry: backlog
-  3-3-hang-detection-with-fast-backend-halts: backlog
+  epic-3: done
+  3-1-one-stop-container-mutation: done
+  3-2-migration-wait-monitor-with-heartbeat-telemetry: done
+  3-3-hang-detection-with-fast-backend-halts: done
   epic-3-retrospective: optional
 
-  epic-4: backlog
-  4-1-ordered-proceed-gate-proof-of-done: backlog
-  4-2-recheck-unpause-and-success-close-out: backlog
-  4-3-failure-bundle-and-rollback-story: backlog
-  4-4-demonstrated-proof-on-the-seeded-instance: backlog
+  epic-4: in-progress
+  4-1-ordered-proceed-gate-proof-of-done: done
+  4-2-recheck-unpause-and-success-close-out: done
+  4-3-failure-bundle-and-rollback-story: done
+  # 4.4 code + runbook complete; live execution needs a connected host with seeded GitLab (see demo-runbook.md)
+  4-4-demonstrated-proof-on-the-seeded-instance: review
   epic-4-retrospective: optional
