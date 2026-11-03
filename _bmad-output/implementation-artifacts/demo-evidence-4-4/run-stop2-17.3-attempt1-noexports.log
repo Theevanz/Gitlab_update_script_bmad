@@ -1,0 +1,3 @@
+2026-11-02T10:35:53Z phase=validate msg="run starts, clock captured at epoch 1793615753"
+2026-11-02T10:35:53Z phase=validate GATE='validate' EXPECTED='all required settings set' OBSERVED='missing: GITLAB_URL GITLAB_ADMIN_TOKEN GITLAB_SMOKE_TOKEN GITLAB_COMPOSE_FILE COMPOSE_SERVICE BACKUP_PATH SEED_PROJECT_PATH' ACTION='export the missing settings and re-run' RUNNERS='unknown' CONTAINER='unknown' msg="required settings are missing"
+2026-11-02T10:35:53Z phase=validate msg="no failure bundle: run never reached the instance-touching phases"

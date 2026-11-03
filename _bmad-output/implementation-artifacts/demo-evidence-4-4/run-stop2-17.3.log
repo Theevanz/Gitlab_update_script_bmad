@@ -1,0 +1,926 @@
+2026-11-03T02:17:58Z phase=validate msg="run starts, clock captured at epoch 1793672278"
+2026-11-03T02:17:59Z phase=validate msg="settings ok: url=http://localhost:8080 repo=gitlab/gitlab-ce service=gitlab json_reader=jq"
+2026-11-03T02:17:59Z phase=validate msg="tokens: admin needs the manage_runner right, smoke needs the write_repository right"
+2026-11-03T02:17:59Z phase=plan msg="layer0 container state: gitlab:Running"
+2026-11-03T02:17:59Z phase=plan target=17.3.7 msg="one-hop plan: current=17.1.8 stop=17.3 target=17.3.7 image=gitlab/gitlab-ce:17.3.7-ce.0"
+2026-11-03T02:17:59Z phase=plan target=17.3.7 msg="no stop note, no acknowledgement needed"
+2026-11-03T02:17:59Z phase=pre target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:17:59Z phase=pre target=17.3.7 msg="health check: /-/health reads GitLab OK"
+2026-11-03T02:18:00Z phase=pre target=17.3.7 msg="health gem (before pause): success"
+2026-11-03T02:18:22Z phase=pre target=17.3.7 msg="leftover check: 61 of 61 complete (finished or finalized)"
+2026-11-03T02:18:22Z phase=pre target=17.3.7 msg="backup check: artifact fresh, 61740 seconds old"
+2026-11-03T02:18:22Z phase=pre target=17.3.7 msg="pre-pause checks pass, CI may be quieted"
+2026-11-03T02:18:22Z phase=pause target=17.3.7 msg="no runners found, nothing to pause"
+2026-11-03T02:18:22Z phase=pause target=17.3.7 msg="drain done, zero running jobs after 0s"
+2026-11-03T02:18:22Z phase=pause target=17.3.7 msg="quiet assert: all runners paused and drained"
+2026-11-03T02:18:22Z phase=pre target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:18:22Z phase=pre target=17.3.7 msg="health check: /-/health reads GitLab OK"
+2026-11-03T02:18:23Z phase=pre target=17.3.7 msg="health gem (after drain): success"
+2026-11-03T02:18:44Z phase=pre target=17.3.7 msg="leftover check: 61 of 61 complete (finished or finalized)"
+2026-11-03T02:18:44Z phase=pre target=17.3.7 msg="backup check: artifact fresh, 61740 seconds old"
+2026-11-03T02:18:44Z phase=pre target=17.3.7 msg="quiet assert: all runners paused and drained"
+2026-11-03T02:18:44Z phase=pre target=17.3.7 msg="pre-gate holds, the instance may be changed"
+2026-11-03T02:18:44Z phase=mutate target=17.3.7 msg="compose file backed up to /home/admin/Desktop/reeve/deliverable-gitlab-update/test-gitlab-server/docker-compose.yml.bak-17.3.7-1793672324 (kept, never auto-restored)"
+2026-11-03T02:18:45Z phase=mutate target=17.3.7 msg="image pinned to gitlab/gitlab-ce:17.3.7-ce.0"
+ gitlab Pulling 
+ 6414378b6477 Already exists 
+ 9687c248eca8 Pulling fs layer 
+ 952a4bf38fc5 Pulling fs layer 
+ 349f71817183 Pulling fs layer 
+ 67038a51f78a Pulling fs layer 
+ 143c77717113 Pulling fs layer 
+ 346f3520b282 Pulling fs layer 
+ 5b82a4fdd098 Pulling fs layer 
+ 592cf54db80d Pulling fs layer 
+ 67038a51f78a Waiting 
+ 143c77717113 Waiting 
+ 346f3520b282 Waiting 
+ 592cf54db80d Waiting 
+ 5b82a4fdd098 Waiting 
+ 9687c248eca8 Downloading     163B/163B
+ 9687c248eca8 Verifying Checksum 
+ 9687c248eca8 Download complete 
+ 9687c248eca8 Extracting     163B/163B
+ 9687c248eca8 Extracting     163B/163B
+ 349f71817183 Downloading  15.75kB/438.1kB
+ 9687c248eca8 Pull complete 
+ 952a4bf38fc5 Downloading  178.9kB/17.18MB
+ 349f71817183 Verifying Checksum 
+ 349f71817183 Download complete 
+ 952a4bf38fc5 Downloading  1.989MB/17.18MB
+ 952a4bf38fc5 Downloading   3.43MB/17.18MB
+ 952a4bf38fc5 Downloading  5.047MB/17.18MB
+ 952a4bf38fc5 Downloading  7.028MB/17.18MB
+ 952a4bf38fc5 Downloading  9.182MB/17.18MB
+ 952a4bf38fc5 Downloading  11.33MB/17.18MB
+ 952a4bf38fc5 Downloading  13.47MB/17.18MB
+ 952a4bf38fc5 Downloading  15.09MB/17.18MB
+ 67038a51f78a Downloading     134B/134B
+ 67038a51f78a Verifying Checksum 
+ 67038a51f78a Download complete 
+ 952a4bf38fc5 Download complete 
+ 143c77717113 Downloading     139B/139B
+ 143c77717113 Verifying Checksum 
+ 143c77717113 Download complete 
+ 952a4bf38fc5 Extracting  196.6kB/17.18MB
+ 952a4bf38fc5 Extracting  4.522MB/17.18MB
+ 952a4bf38fc5 Extracting  8.258MB/17.18MB
+ 952a4bf38fc5 Extracting   11.8MB/17.18MB
+ 952a4bf38fc5 Extracting  14.16MB/17.18MB
+ 952a4bf38fc5 Extracting  15.93MB/17.18MB
+ 952a4bf38fc5 Extracting  16.32MB/17.18MB
+ 952a4bf38fc5 Extracting  17.18MB/17.18MB
+ 952a4bf38fc5 Pull complete 
+ 349f71817183 Extracting  32.77kB/438.1kB
+ 349f71817183 Extracting  438.1kB/438.1kB
+ 349f71817183 Extracting  438.1kB/438.1kB
+ 349f71817183 Pull complete 
+ 67038a51f78a Extracting     134B/134B
+ 67038a51f78a Extracting     134B/134B
+ 67038a51f78a Pull complete 
+ 143c77717113 Extracting     139B/139B
+ 143c77717113 Extracting     139B/139B
+ 346f3520b282 Downloading     306B/306B
+ 346f3520b282 Verifying Checksum 
+ 346f3520b282 Download complete 
+ 143c77717113 Pull complete 
+ 346f3520b282 Extracting     306B/306B
+ 346f3520b282 Extracting     306B/306B
+ 346f3520b282 Pull complete 
+ 5b82a4fdd098 Downloading  3.503kB/5.217kB
+ 5b82a4fdd098 Downloading  5.217kB/5.217kB
+ 5b82a4fdd098 Verifying Checksum 
+ 5b82a4fdd098 Download complete 
+ 5b82a4fdd098 Extracting  5.217kB/5.217kB
+ 5b82a4fdd098 Extracting  5.217kB/5.217kB
+ 5b82a4fdd098 Pull complete 
+ 592cf54db80d Downloading  525.5kB/1.296GB
+ 592cf54db80d Downloading  3.162MB/1.296GB
+ 592cf54db80d Downloading    5.8MB/1.296GB
+ 592cf54db80d Downloading  8.457MB/1.296GB
+ 592cf54db80d Downloading  11.12MB/1.296GB
+ 592cf54db80d Downloading  13.78MB/1.296GB
+ 592cf54db80d Downloading  16.46MB/1.296GB
+ 592cf54db80d Downloading  19.13MB/1.296GB
+ 592cf54db80d Downloading   21.8MB/1.296GB
+ 592cf54db80d Downloading  24.46MB/1.296GB
+ 592cf54db80d Downloading  27.12MB/1.296GB
+ 592cf54db80d Downloading  29.23MB/1.296GB
+ 592cf54db80d Downloading  31.91MB/1.296GB
+ 592cf54db80d Downloading  34.59MB/1.296GB
+ 592cf54db80d Downloading  37.26MB/1.296GB
+ 592cf54db80d Downloading  39.94MB/1.296GB
+ 592cf54db80d Downloading  42.61MB/1.296GB
+ 592cf54db80d Downloading  45.28MB/1.296GB
+ 592cf54db80d Downloading  47.96MB/1.296GB
+ 592cf54db80d Downloading  50.63MB/1.296GB
+ 592cf54db80d Downloading  53.29MB/1.296GB
+ 592cf54db80d Downloading  55.95MB/1.296GB
+ 592cf54db80d Downloading  58.62MB/1.296GB
+ 592cf54db80d Downloading   61.3MB/1.296GB
+ 592cf54db80d Downloading  63.98MB/1.296GB
+ 592cf54db80d Downloading  66.65MB/1.296GB
+ 592cf54db80d Downloading  68.78MB/1.296GB
+ 592cf54db80d Downloading   70.9MB/1.296GB
+ 592cf54db80d Downloading  73.06MB/1.296GB
+ 592cf54db80d Downloading  75.22MB/1.296GB
+ 592cf54db80d Downloading  77.33MB/1.296GB
+ 592cf54db80d Downloading  80.01MB/1.296GB
+ 592cf54db80d Downloading  82.66MB/1.296GB
+ 592cf54db80d Downloading   84.8MB/1.296GB
+ 592cf54db80d Downloading  87.45MB/1.296GB
+ 592cf54db80d Downloading  90.12MB/1.296GB
+ 592cf54db80d Downloading  92.79MB/1.296GB
+ 592cf54db80d Downloading  95.46MB/1.296GB
+ 592cf54db80d Downloading  98.12MB/1.296GB
+ 592cf54db80d Downloading  99.71MB/1.296GB
+ 592cf54db80d Downloading  101.8MB/1.296GB
+ 592cf54db80d Downloading  104.5MB/1.296GB
+ 592cf54db80d Downloading  107.2MB/1.296GB
+ 592cf54db80d Downloading  109.3MB/1.296GB
+ 592cf54db80d Downloading    112MB/1.296GB
+ 592cf54db80d Downloading  114.7MB/1.296GB
+ 592cf54db80d Downloading  117.3MB/1.296GB
+ 592cf54db80d Downloading    120MB/1.296GB
+ 592cf54db80d Downloading  122.7MB/1.296GB
+ 592cf54db80d Downloading  125.4MB/1.296GB
+ 592cf54db80d Downloading    128MB/1.296GB
+ 592cf54db80d Downloading  130.7MB/1.296GB
+ 592cf54db80d Downloading  133.4MB/1.296GB
+ 592cf54db80d Downloading  136.1MB/1.296GB
+ 592cf54db80d Downloading  138.7MB/1.296GB
+ 592cf54db80d Downloading  141.4MB/1.296GB
+ 592cf54db80d Downloading    144MB/1.296GB
+ 592cf54db80d Downloading  146.7MB/1.296GB
+ 592cf54db80d Downloading  148.8MB/1.296GB
+ 592cf54db80d Downloading  151.5MB/1.296GB
+ 592cf54db80d Downloading  154.2MB/1.296GB
+ 592cf54db80d Downloading  156.8MB/1.296GB
+ 592cf54db80d Downloading  158.4MB/1.296GB
+ 592cf54db80d Downloading  160.6MB/1.296GB
+ 592cf54db80d Downloading  162.7MB/1.296GB
+ 592cf54db80d Downloading  165.4MB/1.296GB
+ 592cf54db80d Downloading  167.5MB/1.296GB
+ 592cf54db80d Downloading  170.2MB/1.296GB
+ 592cf54db80d Downloading  172.8MB/1.296GB
+ 592cf54db80d Downloading  175.5MB/1.296GB
+ 592cf54db80d Downloading  177.6MB/1.296GB
+ 592cf54db80d Downloading  179.7MB/1.296GB
+ 592cf54db80d Downloading  182.4MB/1.296GB
+ 592cf54db80d Downloading  185.1MB/1.296GB
+ 592cf54db80d Downloading  187.7MB/1.296GB
+ 592cf54db80d Downloading  190.4MB/1.296GB
+ 592cf54db80d Downloading  193.1MB/1.296GB
+ 592cf54db80d Downloading  195.7MB/1.296GB
+ 592cf54db80d Downloading  198.4MB/1.296GB
+ 592cf54db80d Downloading  201.1MB/1.296GB
+ 592cf54db80d Downloading  203.7MB/1.296GB
+ 592cf54db80d Downloading  205.3MB/1.296GB
+ 592cf54db80d Downloading    208MB/1.296GB
+ 592cf54db80d Downloading  210.7MB/1.296GB
+ 592cf54db80d Downloading  213.3MB/1.296GB
+ 592cf54db80d Downloading    216MB/1.296GB
+ 592cf54db80d Downloading  218.7MB/1.296GB
+ 592cf54db80d Downloading  221.4MB/1.296GB
+ 592cf54db80d Downloading    224MB/1.296GB
+ 592cf54db80d Downloading  226.7MB/1.296GB
+ 592cf54db80d Downloading  227.2MB/1.296GB
+ 592cf54db80d Downloading  229.4MB/1.296GB
+ 592cf54db80d Downloading  232.1MB/1.296GB
+ 592cf54db80d Downloading  234.7MB/1.296GB
+ 592cf54db80d Downloading  237.3MB/1.296GB
+ 592cf54db80d Downloading    240MB/1.296GB
+ 592cf54db80d Downloading  242.7MB/1.296GB
+ 592cf54db80d Downloading  245.3MB/1.296GB
+ 592cf54db80d Downloading    248MB/1.296GB
+ 592cf54db80d Downloading  250.7MB/1.296GB
+ 592cf54db80d Downloading  253.3MB/1.296GB
+ 592cf54db80d Downloading  255.5MB/1.296GB
+ 592cf54db80d Downloading  257.6MB/1.296GB
+ 592cf54db80d Downloading  259.8MB/1.296GB
+ 592cf54db80d Downloading  261.9MB/1.296GB
+ 592cf54db80d Downloading  264.6MB/1.296GB
+ 592cf54db80d Downloading  267.2MB/1.296GB
+ 592cf54db80d Downloading  269.9MB/1.296GB
+ 592cf54db80d Downloading  272.6MB/1.296GB
+ 592cf54db80d Downloading  275.2MB/1.296GB
+ 592cf54db80d Downloading  277.9MB/1.296GB
+ 592cf54db80d Downloading  280.6MB/1.296GB
+ 592cf54db80d Downloading  283.2MB/1.296GB
+ 592cf54db80d Downloading  285.9MB/1.296GB
+ 592cf54db80d Downloading  288.6MB/1.296GB
+ 592cf54db80d Downloading  291.2MB/1.296GB
+ 592cf54db80d Downloading  293.9MB/1.296GB
+ 592cf54db80d Downloading  296.6MB/1.296GB
+ 592cf54db80d Downloading  299.3MB/1.296GB
+ 592cf54db80d Downloading  300.9MB/1.296GB
+ 592cf54db80d Downloading  302.5MB/1.296GB
+ 592cf54db80d Downloading  304.1MB/1.296GB
+ 592cf54db80d Downloading  305.7MB/1.296GB
+ 592cf54db80d Downloading  307.3MB/1.296GB
+ 592cf54db80d Downloading  309.4MB/1.296GB
+ 592cf54db80d Downloading  311.6MB/1.296GB
+ 592cf54db80d Downloading  313.7MB/1.296GB
+ 592cf54db80d Downloading  315.9MB/1.296GB
+ 592cf54db80d Downloading    318MB/1.296GB
+ 592cf54db80d Downloading  320.7MB/1.296GB
+ 592cf54db80d Downloading  323.4MB/1.296GB
+ 592cf54db80d Downloading    326MB/1.296GB
+ 592cf54db80d Downloading  328.7MB/1.296GB
+ 592cf54db80d Downloading  331.4MB/1.296GB
+ 592cf54db80d Downloading    334MB/1.296GB
+ 592cf54db80d Downloading  336.7MB/1.296GB
+ 592cf54db80d Downloading  339.4MB/1.296GB
+ 592cf54db80d Downloading    342MB/1.296GB
+ 592cf54db80d Downloading  344.2MB/1.296GB
+ 592cf54db80d Downloading  346.3MB/1.296GB
+ 592cf54db80d Downloading  348.4MB/1.296GB
+ 592cf54db80d Downloading  350.6MB/1.296GB
+ 592cf54db80d Downloading  352.2MB/1.296GB
+ 592cf54db80d Downloading  354.3MB/1.296GB
+ 592cf54db80d Downloading    357MB/1.296GB
+ 592cf54db80d Downloading  359.6MB/1.296GB
+ 592cf54db80d Downloading  362.3MB/1.296GB
+ 592cf54db80d Downloading    365MB/1.296GB
+ 592cf54db80d Downloading  367.6MB/1.296GB
+ 592cf54db80d Downloading  370.3MB/1.296GB
+ 592cf54db80d Downloading    373MB/1.296GB
+ 592cf54db80d Downloading  375.1MB/1.296GB
+ 592cf54db80d Downloading  377.3MB/1.296GB
+ 592cf54db80d Downloading  379.4MB/1.296GB
+ 592cf54db80d Downloading  381.5MB/1.296GB
+ 592cf54db80d Downloading  384.2MB/1.296GB
+ 592cf54db80d Downloading  386.9MB/1.296GB
+ 592cf54db80d Downloading  389.5MB/1.296GB
+ 592cf54db80d Downloading  391.7MB/1.296GB
+ 592cf54db80d Downloading  394.3MB/1.296GB
+ 592cf54db80d Downloading    397MB/1.296GB
+ 592cf54db80d Downloading  399.6MB/1.296GB
+ 592cf54db80d Downloading  401.8MB/1.296GB
+ 592cf54db80d Downloading  403.9MB/1.296GB
+ 592cf54db80d Downloading  406.6MB/1.296GB
+ 592cf54db80d Downloading  409.2MB/1.296GB
+ 592cf54db80d Downloading  411.9MB/1.296GB
+ 592cf54db80d Downloading  414.6MB/1.296GB
+ 592cf54db80d Downloading  417.2MB/1.296GB
+ 592cf54db80d Downloading  419.9MB/1.296GB
+ 592cf54db80d Downloading  422.6MB/1.296GB
+ 592cf54db80d Downloading  424.7MB/1.296GB
+ 592cf54db80d Downloading  426.8MB/1.296GB
+ 592cf54db80d Downloading  429.5MB/1.296GB
+ 592cf54db80d Downloading  432.1MB/1.296GB
+ 592cf54db80d Downloading  434.8MB/1.296GB
+ 592cf54db80d Downloading  436.9MB/1.296GB
+ 592cf54db80d Downloading  439.1MB/1.296GB
+ 592cf54db80d Downloading  441.2MB/1.296GB
+ 592cf54db80d Downloading  442.3MB/1.296GB
+ 592cf54db80d Downloading  444.4MB/1.296GB
+ 592cf54db80d Downloading  446.6MB/1.296GB
+ 592cf54db80d Downloading  448.7MB/1.296GB
+ 592cf54db80d Downloading  451.3MB/1.296GB
+ 592cf54db80d Downloading    454MB/1.296GB
+ 592cf54db80d Downloading  456.7MB/1.296GB
+ 592cf54db80d Downloading  459.3MB/1.296GB
+ 592cf54db80d Downloading    462MB/1.296GB
+ 592cf54db80d Downloading  464.2MB/1.296GB
+ 592cf54db80d Downloading  466.8MB/1.296GB
+ 592cf54db80d Downloading  469.5MB/1.296GB
+ 592cf54db80d Downloading  471.6MB/1.296GB
+ 592cf54db80d Downloading  473.8MB/1.296GB
+ 592cf54db80d Downloading  475.4MB/1.296GB
+ 592cf54db80d Downloading    478MB/1.296GB
+ 592cf54db80d Downloading  480.2MB/1.296GB
+ 592cf54db80d Downloading  482.3MB/1.296GB
+ 592cf54db80d Downloading  484.4MB/1.296GB
+ 592cf54db80d Downloading  487.1MB/1.296GB
+ 592cf54db80d Downloading  489.8MB/1.296GB
+ 592cf54db80d Downloading  492.5MB/1.296GB
+ 592cf54db80d Downloading  495.1MB/1.296GB
+ 592cf54db80d Downloading  497.8MB/1.296GB
+ 592cf54db80d Downloading  500.4MB/1.296GB
+ 592cf54db80d Downloading  502.6MB/1.296GB
+ 592cf54db80d Downloading  505.3MB/1.296GB
+ 592cf54db80d Downloading  507.9MB/1.296GB
+ 592cf54db80d Downloading  510.6MB/1.296GB
+ 592cf54db80d Downloading  513.3MB/1.296GB
+ 592cf54db80d Downloading  515.9MB/1.296GB
+ 592cf54db80d Downloading  518.6MB/1.296GB
+ 592cf54db80d Downloading  521.3MB/1.296GB
+ 592cf54db80d Downloading  523.4MB/1.296GB
+ 592cf54db80d Downloading  525.6MB/1.296GB
+ 592cf54db80d Downloading  527.7MB/1.296GB
+ 592cf54db80d Downloading  530.4MB/1.296GB
+ 592cf54db80d Downloading    533MB/1.296GB
+ 592cf54db80d Downloading  535.7MB/1.296GB
+ 592cf54db80d Downloading  538.4MB/1.296GB
+ 592cf54db80d Downloading    541MB/1.296GB
+ 592cf54db80d Downloading  543.7MB/1.296GB
+ 592cf54db80d Downloading  546.4MB/1.296GB
+ 592cf54db80d Downloading    549MB/1.296GB
+ 592cf54db80d Downloading  551.7MB/1.296GB
+ 592cf54db80d Downloading  554.4MB/1.296GB
+ 592cf54db80d Downloading  557.1MB/1.296GB
+ 592cf54db80d Downloading  559.7MB/1.296GB
+ 592cf54db80d Downloading  561.9MB/1.296GB
+ 592cf54db80d Downloading  564.5MB/1.296GB
+ 592cf54db80d Downloading  567.2MB/1.296GB
+ 592cf54db80d Downloading  569.9MB/1.296GB
+ 592cf54db80d Downloading  572.5MB/1.296GB
+ 592cf54db80d Downloading  575.2MB/1.296GB
+ 592cf54db80d Downloading  577.9MB/1.296GB
+ 592cf54db80d Downloading  580.5MB/1.296GB
+ 592cf54db80d Downloading  583.2MB/1.296GB
+ 592cf54db80d Downloading  585.9MB/1.296GB
+ 592cf54db80d Downloading  588.5MB/1.296GB
+ 592cf54db80d Downloading  591.2MB/1.296GB
+ 592cf54db80d Downloading  593.9MB/1.296GB
+ 592cf54db80d Downloading  596.5MB/1.296GB
+ 592cf54db80d Downloading  599.2MB/1.296GB
+ 592cf54db80d Downloading  601.9MB/1.296GB
+ 592cf54db80d Downloading    604MB/1.296GB
+ 592cf54db80d Downloading  606.7MB/1.296GB
+ 592cf54db80d Downloading  609.4MB/1.296GB
+ 592cf54db80d Downloading    612MB/1.296GB
+ 592cf54db80d Downloading  614.7MB/1.296GB
+ 592cf54db80d Downloading  617.4MB/1.296GB
+ 592cf54db80d Downloading    620MB/1.296GB
+ 592cf54db80d Downloading  622.7MB/1.296GB
+ 592cf54db80d Downloading  625.4MB/1.296GB
+ 592cf54db80d Downloading    627MB/1.296GB
+ 592cf54db80d Downloading  628.6MB/1.296GB
+ 592cf54db80d Downloading  630.8MB/1.296GB
+ 592cf54db80d Downloading  632.9MB/1.296GB
+ 592cf54db80d Downloading    635MB/1.296GB
+ 592cf54db80d Downloading  637.2MB/1.296GB
+ 592cf54db80d Downloading  639.8MB/1.296GB
+ 592cf54db80d Downloading  642.5MB/1.296GB
+ 592cf54db80d Downloading  645.2MB/1.296GB
+ 592cf54db80d Downloading  647.9MB/1.296GB
+ 592cf54db80d Downloading  650.5MB/1.296GB
+ 592cf54db80d Downloading  653.2MB/1.296GB
+ 592cf54db80d Downloading  655.8MB/1.296GB
+ 592cf54db80d Downloading  658.5MB/1.296GB
+ 592cf54db80d Downloading  661.2MB/1.296GB
+ 592cf54db80d Downloading  663.8MB/1.296GB
+ 592cf54db80d Downloading    666MB/1.296GB
+ 592cf54db80d Downloading  668.1MB/1.296GB
+ 592cf54db80d Downloading  670.8MB/1.296GB
+ 592cf54db80d Downloading  673.4MB/1.296GB
+ 592cf54db80d Downloading  676.1MB/1.296GB
+ 592cf54db80d Downloading  678.7MB/1.296GB
+ 592cf54db80d Downloading  681.4MB/1.296GB
+ 592cf54db80d Downloading  684.1MB/1.296GB
+ 592cf54db80d Downloading  686.7MB/1.296GB
+ 592cf54db80d Downloading  689.4MB/1.296GB
+ 592cf54db80d Downloading  692.1MB/1.296GB
+ 592cf54db80d Downloading  694.7MB/1.296GB
+ 592cf54db80d Downloading  697.4MB/1.296GB
+ 592cf54db80d Downloading  700.1MB/1.296GB
+ 592cf54db80d Downloading  702.7MB/1.296GB
+ 592cf54db80d Downloading  705.4MB/1.296GB
+ 592cf54db80d Downloading  708.1MB/1.296GB
+ 592cf54db80d Downloading  710.7MB/1.296GB
+ 592cf54db80d Downloading  713.4MB/1.296GB
+ 592cf54db80d Downloading  716.1MB/1.296GB
+ 592cf54db80d Downloading  718.7MB/1.296GB
+ 592cf54db80d Downloading  721.4MB/1.296GB
+ 592cf54db80d Downloading  723.5MB/1.296GB
+ 592cf54db80d Downloading  725.7MB/1.296GB
+ 592cf54db80d Downloading  727.8MB/1.296GB
+ 592cf54db80d Downloading  730.5MB/1.296GB
+ 592cf54db80d Downloading  733.2MB/1.296GB
+ 592cf54db80d Downloading  735.8MB/1.296GB
+ 592cf54db80d Downloading  738.5MB/1.296GB
+ 592cf54db80d Downloading  741.2MB/1.296GB
+ 592cf54db80d Downloading  743.8MB/1.296GB
+ 592cf54db80d Downloading  746.5MB/1.296GB
+ 592cf54db80d Downloading  749.2MB/1.296GB
+ 592cf54db80d Downloading  751.8MB/1.296GB
+ 592cf54db80d Downloading  754.5MB/1.296GB
+ 592cf54db80d Downloading  757.1MB/1.296GB
+ 592cf54db80d Downloading  759.8MB/1.296GB
+ 592cf54db80d Downloading  762.5MB/1.296GB
+ 592cf54db80d Downloading  765.1MB/1.296GB
+ 592cf54db80d Downloading  767.8MB/1.296GB
+ 592cf54db80d Downloading  770.5MB/1.296GB
+ 592cf54db80d Downloading  773.2MB/1.296GB
+ 592cf54db80d Downloading  775.8MB/1.296GB
+ 592cf54db80d Downloading  778.5MB/1.296GB
+ 592cf54db80d Downloading  781.1MB/1.296GB
+ 592cf54db80d Downloading  783.8MB/1.296GB
+ 592cf54db80d Downloading  786.5MB/1.296GB
+ 592cf54db80d Downloading  789.2MB/1.296GB
+ 592cf54db80d Downloading  791.8MB/1.296GB
+ 592cf54db80d Downloading  794.5MB/1.296GB
+ 592cf54db80d Downloading  797.2MB/1.296GB
+ 592cf54db80d Downloading  799.8MB/1.296GB
+ 592cf54db80d Downloading  802.5MB/1.296GB
+ 592cf54db80d Downloading  805.2MB/1.296GB
+ 592cf54db80d Downloading  807.8MB/1.296GB
+ 592cf54db80d Downloading  810.5MB/1.296GB
+ 592cf54db80d Downloading  813.2MB/1.296GB
+ 592cf54db80d Downloading  815.8MB/1.296GB
+ 592cf54db80d Downloading  818.5MB/1.296GB
+ 592cf54db80d Downloading  821.2MB/1.296GB
+ 592cf54db80d Downloading  823.9MB/1.296GB
+ 592cf54db80d Downloading  826.5MB/1.296GB
+ 592cf54db80d Downloading  829.2MB/1.296GB
+ 592cf54db80d Downloading  831.9MB/1.296GB
+ 592cf54db80d Downloading  833.5MB/1.296GB
+ 592cf54db80d Downloading  835.6MB/1.296GB
+ 592cf54db80d Downloading  837.7MB/1.296GB
+ 592cf54db80d Downloading  840.4MB/1.296GB
+ 592cf54db80d Downloading  843.1MB/1.296GB
+ 592cf54db80d Downloading  845.8MB/1.296GB
+ 592cf54db80d Downloading  848.4MB/1.296GB
+ 592cf54db80d Downloading  851.1MB/1.296GB
+ 592cf54db80d Downloading  853.8MB/1.296GB
+ 592cf54db80d Downloading  856.4MB/1.296GB
+ 592cf54db80d Downloading  859.1MB/1.296GB
+ 592cf54db80d Downloading  861.8MB/1.296GB
+ 592cf54db80d Downloading  864.4MB/1.296GB
+ 592cf54db80d Downloading  867.1MB/1.296GB
+ 592cf54db80d Downloading  869.8MB/1.296GB
+ 592cf54db80d Downloading  872.4MB/1.296GB
+ 592cf54db80d Downloading  875.1MB/1.296GB
+ 592cf54db80d Downloading  877.8MB/1.296GB
+ 592cf54db80d Downloading  879.4MB/1.296GB
+ 592cf54db80d Downloading    882MB/1.296GB
+ 592cf54db80d Downloading  884.2MB/1.296GB
+ 592cf54db80d Downloading  886.8MB/1.296GB
+ 592cf54db80d Downloading  889.5MB/1.296GB
+ 592cf54db80d Downloading  892.2MB/1.296GB
+ 592cf54db80d Downloading  894.8MB/1.296GB
+ 592cf54db80d Downloading  897.5MB/1.296GB
+ 592cf54db80d Downloading  900.2MB/1.296GB
+ 592cf54db80d Downloading  902.9MB/1.296GB
+ 592cf54db80d Downloading  903.9MB/1.296GB
+ 592cf54db80d Downloading  906.6MB/1.296GB
+ 592cf54db80d Downloading  909.3MB/1.296GB
+ 592cf54db80d Downloading  911.9MB/1.296GB
+ 592cf54db80d Downloading  914.5MB/1.296GB
+ 592cf54db80d Downloading  917.2MB/1.296GB
+ 592cf54db80d Downloading  919.9MB/1.296GB
+ 592cf54db80d Downloading    922MB/1.296GB
+ 592cf54db80d Downloading  924.1MB/1.296GB
+ 592cf54db80d Downloading  926.3MB/1.296GB
+ 592cf54db80d Downloading  928.4MB/1.296GB
+ 592cf54db80d Downloading  930.6MB/1.296GB
+ 592cf54db80d Downloading  932.7MB/1.296GB
+ 592cf54db80d Downloading  934.8MB/1.296GB
+ 592cf54db80d Downloading    937MB/1.296GB
+ 592cf54db80d Downloading  939.1MB/1.296GB
+ 592cf54db80d Downloading  941.8MB/1.296GB
+ 592cf54db80d Downloading  944.4MB/1.296GB
+ 592cf54db80d Downloading  947.1MB/1.296GB
+ 592cf54db80d Downloading  949.8MB/1.296GB
+ 592cf54db80d Downloading  952.4MB/1.296GB
+ 592cf54db80d Downloading  955.1MB/1.296GB
+ 592cf54db80d Downloading  957.2MB/1.296GB
+ 592cf54db80d Downloading  959.4MB/1.296GB
+ 592cf54db80d Downloading  962.1MB/1.296GB
+ 592cf54db80d Downloading  964.7MB/1.296GB
+ 592cf54db80d Downloading  967.4MB/1.296GB
+ 592cf54db80d Downloading  968.5MB/1.296GB
+ 592cf54db80d Downloading    970MB/1.296GB
+ 592cf54db80d Downloading  972.2MB/1.296GB
+ 592cf54db80d Downloading  974.3MB/1.296GB
+ 592cf54db80d Downloading    977MB/1.296GB
+ 592cf54db80d Downloading  979.7MB/1.296GB
+ 592cf54db80d Downloading  982.4MB/1.296GB
+ 592cf54db80d Downloading    985MB/1.296GB
+ 592cf54db80d Downloading  987.7MB/1.296GB
+ 592cf54db80d Downloading  990.4MB/1.296GB
+ 592cf54db80d Downloading  993.1MB/1.296GB
+ 592cf54db80d Downloading  995.7MB/1.296GB
+ 592cf54db80d Downloading  998.4MB/1.296GB
+ 592cf54db80d Downloading  1.001GB/1.296GB
+ 592cf54db80d Downloading  1.004GB/1.296GB
+ 592cf54db80d Downloading  1.007GB/1.296GB
+ 592cf54db80d Downloading   1.01GB/1.296GB
+ 592cf54db80d Downloading  1.012GB/1.296GB
+ 592cf54db80d Downloading  1.015GB/1.296GB
+ 592cf54db80d Downloading  1.018GB/1.296GB
+ 592cf54db80d Downloading  1.019GB/1.296GB
+ 592cf54db80d Downloading  1.022GB/1.296GB
+ 592cf54db80d Downloading  1.025GB/1.296GB
+ 592cf54db80d Downloading  1.027GB/1.296GB
+ 592cf54db80d Downloading  1.029GB/1.296GB
+ 592cf54db80d Downloading  1.032GB/1.296GB
+ 592cf54db80d Downloading  1.035GB/1.296GB
+ 592cf54db80d Downloading  1.037GB/1.296GB
+ 592cf54db80d Downloading   1.04GB/1.296GB
+ 592cf54db80d Downloading  1.043GB/1.296GB
+ 592cf54db80d Downloading  1.045GB/1.296GB
+ 592cf54db80d Downloading  1.048GB/1.296GB
+ 592cf54db80d Downloading   1.05GB/1.296GB
+ 592cf54db80d Downloading  1.053GB/1.296GB
+ 592cf54db80d Downloading  1.055GB/1.296GB
+ 592cf54db80d Downloading  1.058GB/1.296GB
+ 592cf54db80d Downloading  1.061GB/1.296GB
+ 592cf54db80d Downloading  1.063GB/1.296GB
+ 592cf54db80d Downloading  1.066GB/1.296GB
+ 592cf54db80d Downloading  1.069GB/1.296GB
+ 592cf54db80d Downloading  1.071GB/1.296GB
+ 592cf54db80d Downloading  1.074GB/1.296GB
+ 592cf54db80d Downloading  1.077GB/1.296GB
+ 592cf54db80d Downloading  1.079GB/1.296GB
+ 592cf54db80d Downloading  1.082GB/1.296GB
+ 592cf54db80d Downloading  1.085GB/1.296GB
+ 592cf54db80d Downloading  1.087GB/1.296GB
+ 592cf54db80d Downloading   1.09GB/1.296GB
+ 592cf54db80d Downloading  1.093GB/1.296GB
+ 592cf54db80d Downloading  1.095GB/1.296GB
+ 592cf54db80d Downloading  1.098GB/1.296GB
+ 592cf54db80d Downloading  1.101GB/1.296GB
+ 592cf54db80d Downloading  1.103GB/1.296GB
+ 592cf54db80d Downloading  1.106GB/1.296GB
+ 592cf54db80d Downloading  1.109GB/1.296GB
+ 592cf54db80d Downloading  1.111GB/1.296GB
+ 592cf54db80d Downloading  1.114GB/1.296GB
+ 592cf54db80d Downloading  1.116GB/1.296GB
+ 592cf54db80d Downloading  1.118GB/1.296GB
+ 592cf54db80d Downloading  1.121GB/1.296GB
+ 592cf54db80d Downloading  1.124GB/1.296GB
+ 592cf54db80d Downloading  1.126GB/1.296GB
+ 592cf54db80d Downloading  1.129GB/1.296GB
+ 592cf54db80d Downloading  1.131GB/1.296GB
+ 592cf54db80d Downloading  1.133GB/1.296GB
+ 592cf54db80d Downloading  1.136GB/1.296GB
+ 592cf54db80d Downloading  1.138GB/1.296GB
+ 592cf54db80d Downloading  1.141GB/1.296GB
+ 592cf54db80d Downloading  1.144GB/1.296GB
+ 592cf54db80d Downloading  1.147GB/1.296GB
+ 592cf54db80d Downloading  1.149GB/1.296GB
+ 592cf54db80d Downloading  1.152GB/1.296GB
+ 592cf54db80d Downloading  1.155GB/1.296GB
+ 592cf54db80d Downloading  1.157GB/1.296GB
+ 592cf54db80d Downloading  1.159GB/1.296GB
+ 592cf54db80d Downloading  1.162GB/1.296GB
+ 592cf54db80d Downloading  1.165GB/1.296GB
+ 592cf54db80d Downloading  1.167GB/1.296GB
+ 592cf54db80d Downloading   1.17GB/1.296GB
+ 592cf54db80d Downloading  1.173GB/1.296GB
+ 592cf54db80d Downloading  1.175GB/1.296GB
+ 592cf54db80d Downloading  1.178GB/1.296GB
+ 592cf54db80d Downloading  1.181GB/1.296GB
+ 592cf54db80d Downloading  1.183GB/1.296GB
+ 592cf54db80d Downloading  1.186GB/1.296GB
+ 592cf54db80d Downloading  1.189GB/1.296GB
+ 592cf54db80d Downloading  1.191GB/1.296GB
+ 592cf54db80d Downloading  1.194GB/1.296GB
+ 592cf54db80d Downloading  1.197GB/1.296GB
+ 592cf54db80d Downloading  1.199GB/1.296GB
+ 592cf54db80d Downloading  1.202GB/1.296GB
+ 592cf54db80d Downloading  1.205GB/1.296GB
+ 592cf54db80d Downloading  1.207GB/1.296GB
+ 592cf54db80d Downloading   1.21GB/1.296GB
+ 592cf54db80d Downloading  1.213GB/1.296GB
+ 592cf54db80d Downloading  1.215GB/1.296GB
+ 592cf54db80d Downloading  1.218GB/1.296GB
+ 592cf54db80d Downloading   1.22GB/1.296GB
+ 592cf54db80d Downloading  1.222GB/1.296GB
+ 592cf54db80d Downloading  1.225GB/1.296GB
+ 592cf54db80d Downloading  1.228GB/1.296GB
+ 592cf54db80d Downloading   1.23GB/1.296GB
+ 592cf54db80d Downloading  1.233GB/1.296GB
+ 592cf54db80d Downloading  1.236GB/1.296GB
+ 592cf54db80d Downloading  1.238GB/1.296GB
+ 592cf54db80d Downloading  1.241GB/1.296GB
+ 592cf54db80d Downloading  1.244GB/1.296GB
+ 592cf54db80d Downloading  1.246GB/1.296GB
+ 592cf54db80d Downloading  1.249GB/1.296GB
+ 592cf54db80d Downloading  1.251GB/1.296GB
+ 592cf54db80d Downloading  1.254GB/1.296GB
+ 592cf54db80d Downloading  1.257GB/1.296GB
+ 592cf54db80d Downloading  1.259GB/1.296GB
+ 592cf54db80d Downloading  1.261GB/1.296GB
+ 592cf54db80d Downloading  1.264GB/1.296GB
+ 592cf54db80d Downloading  1.267GB/1.296GB
+ 592cf54db80d Downloading  1.269GB/1.296GB
+ 592cf54db80d Downloading  1.272GB/1.296GB
+ 592cf54db80d Downloading  1.275GB/1.296GB
+ 592cf54db80d Downloading  1.277GB/1.296GB
+ 592cf54db80d Downloading   1.28GB/1.296GB
+ 592cf54db80d Downloading  1.283GB/1.296GB
+ 592cf54db80d Downloading  1.285GB/1.296GB
+ 592cf54db80d Downloading  1.288GB/1.296GB
+ 592cf54db80d Downloading  1.291GB/1.296GB
+ 592cf54db80d Downloading  1.293GB/1.296GB
+ 592cf54db80d Verifying Checksum 
+ 592cf54db80d Download complete 
+ 592cf54db80d Extracting  557.1kB/1.296GB
+ 592cf54db80d Extracting  2.785MB/1.296GB
+ 592cf54db80d Extracting  8.913MB/1.296GB
+ 592cf54db80d Extracting  15.04MB/1.296GB
+ 592cf54db80d Extracting  24.51MB/1.296GB
+ 592cf54db80d Extracting  33.42MB/1.296GB
+ 592cf54db80d Extracting  42.89MB/1.296GB
+ 592cf54db80d Extracting  50.69MB/1.296GB
+ 592cf54db80d Extracting  60.16MB/1.296GB
+ 592cf54db80d Extracting  72.97MB/1.296GB
+ 592cf54db80d Extracting  81.89MB/1.296GB
+ 592cf54db80d Extracting  91.91MB/1.296GB
+ 592cf54db80d Extracting  103.6MB/1.296GB
+ 592cf54db80d Extracting  110.3MB/1.296GB
+ 592cf54db80d Extracting  124.2MB/1.296GB
+ 592cf54db80d Extracting  139.8MB/1.296GB
+ 592cf54db80d Extracting  145.9MB/1.296GB
+ 592cf54db80d Extracting    161MB/1.296GB
+ 592cf54db80d Extracting  173.2MB/1.296GB
+ 592cf54db80d Extracting  186.1MB/1.296GB
+ 592cf54db80d Extracting  198.3MB/1.296GB
+ 592cf54db80d Extracting  204.4MB/1.296GB
+ 592cf54db80d Extracting  215.6MB/1.296GB
+ 592cf54db80d Extracting  227.8MB/1.296GB
+ 592cf54db80d Extracting  241.2MB/1.296GB
+ 592cf54db80d Extracting  246.2MB/1.296GB
+ 592cf54db80d Extracting  260.7MB/1.296GB
+ 592cf54db80d Extracting  271.3MB/1.296GB
+ 592cf54db80d Extracting  285.2MB/1.296GB
+ 592cf54db80d Extracting  294.1MB/1.296GB
+ 592cf54db80d Extracting  301.9MB/1.296GB
+ 592cf54db80d Extracting  308.6MB/1.296GB
+ 592cf54db80d Extracting  330.3MB/1.296GB
+ 592cf54db80d Extracting  337.6MB/1.296GB
+ 592cf54db80d Extracting    347MB/1.296GB
+ 592cf54db80d Extracting  359.3MB/1.296GB
+ 592cf54db80d Extracting  367.7MB/1.296GB
+ 592cf54db80d Extracting  375.5MB/1.296GB
+ 592cf54db80d Extracting  382.1MB/1.296GB
+ 592cf54db80d Extracting  402.2MB/1.296GB
+ 592cf54db80d Extracting  409.4MB/1.296GB
+ 592cf54db80d Extracting  416.1MB/1.296GB
+ 592cf54db80d Extracting  423.4MB/1.296GB
+ 592cf54db80d Extracting  429.5MB/1.296GB
+ 592cf54db80d Extracting  437.3MB/1.296GB
+ 592cf54db80d Extracting  447.9MB/1.296GB
+ 592cf54db80d Extracting  455.1MB/1.296GB
+ 592cf54db80d Extracting  459.6MB/1.296GB
+ 592cf54db80d Extracting  462.4MB/1.296GB
+ 592cf54db80d Extracting  467.4MB/1.296GB
+ 592cf54db80d Extracting  476.3MB/1.296GB
+ 592cf54db80d Extracting  488.5MB/1.296GB
+ 592cf54db80d Extracting  495.8MB/1.296GB
+ 592cf54db80d Extracting  501.4MB/1.296GB
+ 592cf54db80d Extracting  504.1MB/1.296GB
+ 592cf54db80d Extracting  506.4MB/1.296GB
+ 592cf54db80d Extracting    508MB/1.296GB
+ 592cf54db80d Extracting  519.2MB/1.296GB
+ 592cf54db80d Extracting  530.9MB/1.296GB
+ 592cf54db80d Extracting    532MB/1.296GB
+ 592cf54db80d Extracting  533.1MB/1.296GB
+ 592cf54db80d Extracting  534.2MB/1.296GB
+ 592cf54db80d Extracting  535.9MB/1.296GB
+ 592cf54db80d Extracting    537MB/1.296GB
+ 592cf54db80d Extracting  538.1MB/1.296GB
+ 592cf54db80d Extracting  539.2MB/1.296GB
+ 592cf54db80d Extracting  541.5MB/1.296GB
+ 592cf54db80d Extracting  548.7MB/1.296GB
+ 592cf54db80d Extracting  559.3MB/1.296GB
+ 592cf54db80d Extracting  567.6MB/1.296GB
+ 592cf54db80d Extracting  568.8MB/1.296GB
+ 592cf54db80d Extracting  574.3MB/1.296GB
+ 592cf54db80d Extracting  575.4MB/1.296GB
+ 592cf54db80d Extracting  577.1MB/1.296GB
+ 592cf54db80d Extracting  577.7MB/1.296GB
+ 592cf54db80d Extracting  578.2MB/1.296GB
+ 592cf54db80d Extracting  580.5MB/1.296GB
+ 592cf54db80d Extracting  582.1MB/1.296GB
+ 592cf54db80d Extracting  583.2MB/1.296GB
+ 592cf54db80d Extracting  587.7MB/1.296GB
+ 592cf54db80d Extracting  589.9MB/1.296GB
+ 592cf54db80d Extracting  593.8MB/1.296GB
+ 592cf54db80d Extracting  594.9MB/1.296GB
+ 592cf54db80d Extracting    596MB/1.296GB
+ 592cf54db80d Extracting  597.7MB/1.296GB
+ 592cf54db80d Extracting  598.8MB/1.296GB
+ 592cf54db80d Extracting  601.1MB/1.296GB
+ 592cf54db80d Extracting  602.7MB/1.296GB
+ 592cf54db80d Extracting    605MB/1.296GB
+ 592cf54db80d Extracting  610.5MB/1.296GB
+ 592cf54db80d Extracting  611.6MB/1.296GB
+ 592cf54db80d Extracting  613.9MB/1.296GB
+ 592cf54db80d Extracting    615MB/1.296GB
+ 592cf54db80d Extracting  616.1MB/1.296GB
+ 592cf54db80d Extracting  620.6MB/1.296GB
+ 592cf54db80d Extracting  622.2MB/1.296GB
+ 592cf54db80d Extracting  623.3MB/1.296GB
+ 592cf54db80d Extracting  628.4MB/1.296GB
+ 592cf54db80d Extracting  628.9MB/1.296GB
+ 592cf54db80d Extracting    630MB/1.296GB
+ 592cf54db80d Extracting  638.9MB/1.296GB
+ 592cf54db80d Extracting  647.9MB/1.296GB
+ 592cf54db80d Extracting  648.4MB/1.296GB
+ 592cf54db80d Extracting  652.9MB/1.296GB
+ 592cf54db80d Extracting  653.4MB/1.296GB
+ 592cf54db80d Extracting    654MB/1.296GB
+ 592cf54db80d Extracting  654.5MB/1.296GB
+ 592cf54db80d Extracting  655.1MB/1.296GB
+ 592cf54db80d Extracting  655.7MB/1.296GB
+ 592cf54db80d Extracting  657.3MB/1.296GB
+ 592cf54db80d Extracting  657.9MB/1.296GB
+ 592cf54db80d Extracting  658.4MB/1.296GB
+ 592cf54db80d Extracting    659MB/1.296GB
+ 592cf54db80d Extracting  663.5MB/1.296GB
+ 592cf54db80d Extracting  666.8MB/1.296GB
+ 592cf54db80d Extracting  671.3MB/1.296GB
+ 592cf54db80d Extracting  677.4MB/1.296GB
+ 592cf54db80d Extracting  680.2MB/1.296GB
+ 592cf54db80d Extracting  685.7MB/1.296GB
+ 592cf54db80d Extracting  689.1MB/1.296GB
+ 592cf54db80d Extracting  689.6MB/1.296GB
+ 592cf54db80d Extracting  690.7MB/1.296GB
+ 592cf54db80d Extracting  691.3MB/1.296GB
+ 592cf54db80d Extracting  691.9MB/1.296GB
+ 592cf54db80d Extracting  692.4MB/1.296GB
+ 592cf54db80d Extracting  697.4MB/1.296GB
+ 592cf54db80d Extracting  701.9MB/1.296GB
+ 592cf54db80d Extracting  706.9MB/1.296GB
+ 592cf54db80d Extracting  711.9MB/1.296GB
+ 592cf54db80d Extracting  716.4MB/1.296GB
+ 592cf54db80d Extracting  719.2MB/1.296GB
+ 592cf54db80d Extracting  720.3MB/1.296GB
+ 592cf54db80d Extracting  723.1MB/1.296GB
+ 592cf54db80d Extracting  725.8MB/1.296GB
+ 592cf54db80d Extracting  728.1MB/1.296GB
+ 592cf54db80d Extracting  730.3MB/1.296GB
+ 592cf54db80d Extracting  733.1MB/1.296GB
+ 592cf54db80d Extracting  738.7MB/1.296GB
+ 592cf54db80d Extracting  744.8MB/1.296GB
+ 592cf54db80d Extracting  753.7MB/1.296GB
+ 592cf54db80d Extracting  762.6MB/1.296GB
+ 592cf54db80d Extracting  771.5MB/1.296GB
+ 592cf54db80d Extracting  780.4MB/1.296GB
+ 592cf54db80d Extracting  788.2MB/1.296GB
+ 592cf54db80d Extracting  795.5MB/1.296GB
+ 592cf54db80d Extracting  807.7MB/1.296GB
+ 592cf54db80d Extracting  818.9MB/1.296GB
+ 592cf54db80d Extracting  826.1MB/1.296GB
+ 592cf54db80d Extracting  836.1MB/1.296GB
+ 592cf54db80d Extracting  846.7MB/1.296GB
+ 592cf54db80d Extracting  849.5MB/1.296GB
+ 592cf54db80d Extracting  853.4MB/1.296GB
+ 592cf54db80d Extracting  859.5MB/1.296GB
+ 592cf54db80d Extracting  863.4MB/1.296GB
+ 592cf54db80d Extracting  871.2MB/1.296GB
+ 592cf54db80d Extracting  877.9MB/1.296GB
+ 592cf54db80d Extracting  883.5MB/1.296GB
+ 592cf54db80d Extracting  885.2MB/1.296GB
+ 592cf54db80d Extracting  895.7MB/1.296GB
+ 592cf54db80d Extracting  903.5MB/1.296GB
+ 592cf54db80d Extracting  914.7MB/1.296GB
+ 592cf54db80d Extracting  926.4MB/1.296GB
+ 592cf54db80d Extracting  933.1MB/1.296GB
+ 592cf54db80d Extracting  940.9MB/1.296GB
+ 592cf54db80d Extracting  947.6MB/1.296GB
+ 592cf54db80d Extracting  957.6MB/1.296GB
+ 592cf54db80d Extracting  959.8MB/1.296GB
+ 592cf54db80d Extracting  969.3MB/1.296GB
+ 592cf54db80d Extracting  980.4MB/1.296GB
+ 592cf54db80d Extracting  992.7MB/1.296GB
+ 592cf54db80d Extracting  1.004GB/1.296GB
+ 592cf54db80d Extracting  1.016GB/1.296GB
+ 592cf54db80d Extracting  1.026GB/1.296GB
+ 592cf54db80d Extracting  1.031GB/1.296GB
+ 592cf54db80d Extracting  1.036GB/1.296GB
+ 592cf54db80d Extracting  1.041GB/1.296GB
+ 592cf54db80d Extracting  1.044GB/1.296GB
+ 592cf54db80d Extracting  1.049GB/1.296GB
+ 592cf54db80d Extracting  1.053GB/1.296GB
+ 592cf54db80d Extracting  1.057GB/1.296GB
+ 592cf54db80d Extracting  1.063GB/1.296GB
+ 592cf54db80d Extracting   1.08GB/1.296GB
+ 592cf54db80d Extracting  1.087GB/1.296GB
+ 592cf54db80d Extracting  1.112GB/1.296GB
+ 592cf54db80d Extracting  1.136GB/1.296GB
+ 592cf54db80d Extracting  1.159GB/1.296GB
+ 592cf54db80d Extracting  1.184GB/1.296GB
+ 592cf54db80d Extracting   1.21GB/1.296GB
+ 592cf54db80d Extracting  1.235GB/1.296GB
+ 592cf54db80d Extracting  1.258GB/1.296GB
+ 592cf54db80d Extracting  1.279GB/1.296GB
+ 592cf54db80d Extracting  1.283GB/1.296GB
+ 592cf54db80d Extracting  1.287GB/1.296GB
+ 592cf54db80d Extracting  1.288GB/1.296GB
+ 592cf54db80d Extracting  1.289GB/1.296GB
+ 592cf54db80d Extracting  1.291GB/1.296GB
+ 592cf54db80d Extracting  1.292GB/1.296GB
+ 592cf54db80d Extracting  1.294GB/1.296GB
+ 592cf54db80d Extracting  1.296GB/1.296GB
+ 592cf54db80d Pull complete 
+ gitlab Pulled 
+2026-11-03T02:20:14Z phase=mutate target=17.3.7 msg="pulled gitlab/gitlab-ce:17.3.7-ce.0"
+ Container test-gitlab-server  Stopping
+ Container test-gitlab-server  Stopped
+ Container test-gitlab-server  Removing
+ Container test-gitlab-server  Removed
+ Network test-gitlab-server_default  Removing
+ Network test-gitlab-server_default  Removed
+2026-11-03T02:20:26Z phase=mutate target=17.3.7 msg="project stopped (compose down has no service filter)"
+ Network test-gitlab-server_default  Creating
+ Network test-gitlab-server_default  Created
+ Container test-gitlab-server  Creating
+ Container test-gitlab-server  Created
+ Container test-gitlab-server  Starting
+ Container test-gitlab-server  Started
+2026-11-03T02:20:27Z phase=mutate target=17.3.7 msg="service started, waiting for startup"
+2026-11-03T02:20:27Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:20:27Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=0 state=gitlab:Running"
+2026-11-03T02:20:37Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:20:37Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=10 state=gitlab:Running"
+2026-11-03T02:20:47Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:20:47Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=20 state=gitlab:Running"
+2026-11-03T02:20:57Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:20:57Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=30 state=gitlab:Running"
+2026-11-03T02:21:07Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:21:07Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=40 state=gitlab:Running"
+2026-11-03T02:21:17Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:21:17Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=50 state=gitlab:Running"
+2026-11-03T02:21:27Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:21:27Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=60 state=gitlab:Running"
+2026-11-03T02:21:37Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:21:37Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=70 state=gitlab:Running"
+2026-11-03T02:21:47Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:21:47Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=80 state=gitlab:Running"
+2026-11-03T02:21:58Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:21:58Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=91 state=gitlab:Running"
+2026-11-03T02:22:08Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:22:08Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=101 state=gitlab:Running"
+2026-11-03T02:22:18Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:22:18Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=111 state=gitlab:Running"
+2026-11-03T02:22:28Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:22:28Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=121 state=gitlab:Running"
+2026-11-03T02:22:38Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:22:38Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=131 state=gitlab:Running"
+2026-11-03T02:22:48Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:22:48Z phase=mutate target=17.3.7 msg="startup wait elapsed_s=141 state=gitlab:Running"
+2026-11-03T02:22:58Z phase=mutate target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:22:58Z phase=mutate target=17.3.7 msg="startup done, /-/health answers"
+2026-11-03T02:22:58Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:23:26Z phase=monitor target=17.3.7 msg="hb elapsed_s=0 health=OK liveness=200 cpu_raw="3.17%" mem_raw="3.638GiB / 31.15GiB" bio_raw="97.9MB / 200MB" net_raw="9.16kB / 2.83kB" rake_finished=109 rake_total=114 rake_delta=0"
+2026-11-03T02:23:26Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:23:36Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:24:03Z phase=monitor target=17.3.7 msg="hb elapsed_s=38 health=OK liveness=200 cpu_raw="16.80%" mem_raw="4.05GiB / 31.15GiB" bio_raw="98.4MB / 283MB" net_raw="11.8kB / 7.59kB" rake_finished=109 rake_total=114 rake_delta=0"
+2026-11-03T02:24:03Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:24:14Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:24:41Z phase=monitor target=17.3.7 msg="hb elapsed_s=75 health=OK liveness=200 cpu_raw="1.73%" mem_raw="4.321GiB / 31.15GiB" bio_raw="98.5MB / 284MB" net_raw="14.5kB / 12.3kB" rake_finished=109 rake_total=114 rake_delta=0"
+2026-11-03T02:24:41Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:24:51Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:25:18Z phase=monitor target=17.3.7 msg="hb elapsed_s=113 health=OK liveness=200 cpu_raw="13.15%" mem_raw="4.693GiB / 31.15GiB" bio_raw="98.5MB / 284MB" net_raw="17.3kB / 17.1kB" rake_finished=109 rake_total=114 rake_delta=0"
+2026-11-03T02:25:18Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:25:28Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:25:55Z phase=monitor target=17.3.7 msg="hb elapsed_s=150 health=OK liveness=200 cpu_raw="2.77%" mem_raw="4.91GiB / 31.15GiB" bio_raw="98.5MB / 284MB" net_raw="20kB / 21.9kB" rake_finished=109 rake_total=114 rake_delta=0"
+2026-11-03T02:25:55Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:26:05Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:26:32Z phase=monitor target=17.3.7 msg="hb elapsed_s=187 health=OK liveness=200 cpu_raw="22.59%" mem_raw="5.115GiB / 31.15GiB" bio_raw="98.5MB / 285MB" net_raw="22.6kB / 26.6kB" rake_finished=111 rake_total=114 rake_delta=2"
+2026-11-03T02:26:32Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:26:42Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:27:10Z phase=monitor target=17.3.7 msg="hb elapsed_s=224 health=OK liveness=200 cpu_raw="8.82%" mem_raw="5.471GiB / 31.15GiB" bio_raw="99MB / 285MB" net_raw="71.8kB / 781kB" rake_finished=111 rake_total=114 rake_delta=0"
+2026-11-03T02:27:10Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:27:20Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:27:48Z phase=monitor target=17.3.7 msg="hb elapsed_s=262 health=OK liveness=200 cpu_raw="43.54%" mem_raw="5.514GiB / 31.15GiB" bio_raw="99.1MB / 286MB" net_raw="75.5kB / 787kB" rake_finished=111 rake_total=114 rake_delta=0"
+2026-11-03T02:27:48Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:27:58Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:28:26Z phase=monitor target=17.3.7 msg="hb elapsed_s=300 health=OK liveness=200 cpu_raw="113.21%" mem_raw="5.784GiB / 31.15GiB" bio_raw="99.1MB / 287MB" net_raw="78.8kB / 793kB" rake_finished=111 rake_total=114 rake_delta=0"
+2026-11-03T02:28:26Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:28:36Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:29:03Z phase=monitor target=17.3.7 msg="hb elapsed_s=338 health=OK liveness=200 cpu_raw="27.96%" mem_raw="5.712GiB / 31.15GiB" bio_raw="99.1MB / 288MB" net_raw="81.6kB / 797kB" rake_finished=111 rake_total=114 rake_delta=0"
+2026-11-03T02:29:03Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:29:13Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:29:40Z phase=monitor target=17.3.7 msg="hb elapsed_s=375 health=OK liveness=200 cpu_raw="6.46%" mem_raw="5.885GiB / 31.15GiB" bio_raw="99.1MB / 289MB" net_raw="84.3kB / 802kB" rake_finished=113 rake_total=114 rake_delta=2"
+2026-11-03T02:29:40Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:29:50Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:30:17Z phase=monitor target=17.3.7 msg="hb elapsed_s=412 health=OK liveness=200 cpu_raw="31.06%" mem_raw="6.051GiB / 31.15GiB" bio_raw="99.1MB / 300MB" net_raw="87kB / 807kB" rake_finished=113 rake_total=114 rake_delta=0"
+2026-11-03T02:30:17Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:30:27Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:30:54Z phase=monitor target=17.3.7 msg="hb elapsed_s=449 health=OK liveness=200 cpu_raw="18.41%" mem_raw="6.067GiB / 31.15GiB" bio_raw="99.2MB / 300MB" net_raw="89.7kB / 812kB" rake_finished=113 rake_total=114 rake_delta=0"
+2026-11-03T02:30:54Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:31:04Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:31:30Z phase=monitor target=17.3.7 msg="hb elapsed_s=486 health=OK liveness=200 cpu_raw="2.75%" mem_raw="6.168GiB / 31.15GiB" bio_raw="99.2MB / 306MB" net_raw="92.5kB / 817kB" rake_finished=113 rake_total=114 rake_delta=0"
+2026-11-03T02:31:30Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:31:41Z phase=monitor target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:32:07Z phase=monitor target=17.3.7 msg="hb elapsed_s=522 health=OK liveness=200 cpu_raw="9.47%" mem_raw="6.186GiB / 31.15GiB" bio_raw="99.2MB / 307MB" net_raw="95.2kB / 821kB" rake_finished=114 rake_total=114 rake_delta=1"
+2026-11-03T02:32:07Z phase=monitor target=17.3.7 msg="migrations sub-check: code=200 success (observed only, flat_streak=0)"
+2026-11-03T02:32:07Z phase=monitor target=17.3.7 msg="migrations all complete (114 of 114), wait ends"
+2026-11-03T02:32:07Z phase=proceed target=17.3.7 msg="step 1/6: version 17.3.7 matches 17.3.7"
+2026-11-03T02:32:33Z phase=proceed target=17.3.7 msg="step 2/6: migrations all complete (114 of 114)"
+2026-11-03T02:32:33Z phase=proceed target=17.3.7 msg="proceed health: success"
+2026-11-03T02:32:33Z phase=proceed target=17.3.7 msg="step 3/6: backend stack success"
+2026-11-03T02:32:33Z phase=proceed target=17.3.7 msg="step 4/6: readiness green, services: {'status':'ok','master_check':[{'status':'ok'}],'db_check':[{'status':'ok'}],'buffered_counter_check':[{'status':'ok'}],'cache_check':[{'status':'ok'}],'db_load_balancing_check':[{'status':'ok'}],'feature_flag_check':[{'status':'ok'}],'queues_check':[{'status':'ok'}],'queues_metadata_check':[{'status':'ok'}],'rate_limiting_check':[{'status':'ok'}],'repository_cache_check':[{'status':'ok'}],'sessions_check':[{'status':'ok'}],'shared_state_check':[{'status':'ok'}],'trace_chunks_check':[{'status':'ok'}],'chat_check':[{'status':'ok'}],'workhorse_check':[{'status':'ok'}],'gitaly_check':[{'status':'ok','labels':{'shard':'default'}}]}"
+2026-11-03T02:32:36Z phase=proceed target=17.3.7 msg="smoke: clone and push to seed/demo main passed"
+2026-11-03T02:32:36Z phase=proceed target=17.3.7 msg="step 5/6: smoke test passed"
+2026-11-03T02:32:36Z phase=proceed target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:32:36Z phase=proceed target=17.3.7 msg="health check: /-/health reads GitLab OK"
+2026-11-03T02:32:36Z phase=proceed target=17.3.7 msg="health gem (before unpause): success"
+2026-11-03T02:33:01Z phase=proceed target=17.3.7 msg="leftover check: 114 of 114 complete (finished or finalized)"
+2026-11-03T02:33:01Z phase=proceed target=17.3.7 msg="backup check: artifact fresh, 61740 seconds old"
+2026-11-03T02:33:01Z phase=unpause target=17.3.7 msg="no runners found, nothing to unpause"
+2026-11-03T02:33:01Z phase=proceed target=17.3.7 msg="step 6/6: re-check passed, CI unpaused"
+2026-11-03T02:33:01Z phase=closeout target=17.3.7 msg="layer0 container state: gitlab:Running"
+2026-11-03T02:33:01Z phase=closeout target=17.3.7 msg="health check: /-/health reads GitLab OK"
+2026-11-03T02:33:01Z phase=closeout target=17.3.7 msg="health gem (close-out): success"
+2026-11-03T02:33:26Z phase=closeout target=17.3.7 msg="leftover check: 114 of 114 complete (finished or finalized)"
+2026-11-03T02:33:26Z phase=closeout target=17.3.7 msg="backup check: artifact fresh, 61740 seconds old"
+2026-11-03T02:33:26Z phase=closeout target=17.3.7 msg="no runners, flow check skipped"
+2026-11-03T02:33:26Z phase=closeout target=17.3.7 msg="run complete: 17.1.8 -> 17.3.7, runners unpaused"

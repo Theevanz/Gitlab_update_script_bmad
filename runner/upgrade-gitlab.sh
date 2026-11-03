@@ -509,8 +509,11 @@ fetch_rake_status() {
 
 parse_rake_status() {
   # Check the shape of a rake table and print "finished total" (example:
-  # "41 42"). Needs at least one "Database: <name>" banner; every other
-  # meaningful line must read "status | detail". Zero rows means clear.
+  # "41 42"). A row counts as done when its status reads `finished` or
+  # `finalized` (GitLab's terminal complete state); the counter and field
+  # names keep saying "finished" as the done-count by contract. Needs at
+  # least one "Database: <name>" banner; every other meaningful line must
+  # read "status | detail". Zero rows means clear.
   # Returns 1 on any shape the contract does not allow.
   local text line status rest stripped finished total banners
   text="$1"
@@ -536,7 +539,11 @@ parse_rake_status() {
         if [ -z "$status" ] || [ -z "$rest" ]; then
           return 1
         fi
-        if [ "$status" = "finished" ]; then
+        # Done means finished or finalized. Every other row state blocks:
+        # active/pending (still running), paused (held), failed (errored),
+        # finalizing (a finalize still in progress). Finalized is the
+        # terminal complete state, reached once fully done.
+        if [ "$status" = "finished" ] || [ "$status" = "finalized" ]; then
           finished=$((finished + 1))
         fi
         ;;
@@ -986,9 +993,9 @@ check_health_gem() {
 }
 
 check_rake_leftover() {
-  # Prove no unfinished migrations linger from an earlier stop: the rake
-  # table must read all finished (zero rows counts as clear). Logs the
-  # counts. Returns 1 when anything is unfinished or the table misshapes.
+  # Prove no unfinished migrations linger from an earlier stop: every rake
+  # row must read finished or finalized (zero rows counts as clear). Logs
+  # the counts. Returns 1 when anything is unfinished or the table misshapes.
   local raw counts finished total
   if ! raw="$(fetch_rake_status)"; then
     return 1
@@ -1000,10 +1007,10 @@ check_rake_leftover() {
   finished="${counts%% *}"
   total="${counts##* }"
   if [ "$finished" != "$total" ]; then
-    log "$PHASE" "leftover check: $finished of $total finished, $((total - finished)) unfinished"
+    log "$PHASE" "leftover check: $finished of $total complete, $((total - finished)) unfinished"
     return 1
   fi
-  log "$PHASE" "leftover check: $finished of $total finished"
+  log "$PHASE" "leftover check: $finished of $total complete (finished or finalized)"
   return 0
 }
 
@@ -1400,7 +1407,8 @@ phase_mutate() {
 emit_heartbeat() {
   # Write one migration-wait heartbeat line in the exact ordered shape. Each
   # value is quote-stripped first so the inner double quotes always hold.
-  # Reads the HB_* record filled by the monitor loop.
+  # Reads the HB_* record filled by the monitor loop. rake_finished carries
+  # the done-count (finished plus finalized rows) by contract.
   local c m b n line
   c="${HB_CPU//\"/}"
   m="${HB_MEM//\"/}"
@@ -1466,7 +1474,8 @@ backend_gate() {
 
 phase_monitor() {
   # Watch the migration wait: one heartbeat line every 10 s with app signals
-  # plus finished-count deltas, until every batched migration reads finished.
+  # plus done-count deltas, until every batched migration reads finished or
+  # finalized.
   # Only Running is tolerated; an exited container stops the run with crash
   # evidence. Readiness stays out: it is expected red while migrating.
   PHASE="monitor"
@@ -1582,11 +1591,11 @@ phase_monitor() {
     emit_heartbeat
     log "monitor" "migrations sub-check: $mig_detail (observed only, flat_streak=$flat)"
     if [ "$finished" = "$total" ]; then
-      log "monitor" "migrations all finished ($finished of $total), wait ends"
+      log "monitor" "migrations all complete ($finished of $total), wait ends"
       return 0
     fi
     if [ "$flat" = "HALT" ]; then
-      die "monitor" "migration movement or a busy box within 5 minutes" "30 flat beats, finished=$finished/$total, cpu idle, block-io unchanged" "inspect the wedged migration, fix it, re-run" "migration wait hung"
+      die "monitor" "migration movement or a busy box within 5 minutes" "30 flat beats, complete=$finished/$total, cpu idle, block-io unchanged" "inspect the wedged migration, fix it, re-run" "migration wait hung"
     fi
     sleep 10 || die "monitor" "uninterrupted migration wait" "sleep stopped" "re-run to resume watching" "migration wait broke off"
   done
@@ -1693,9 +1702,9 @@ phase_proceed() {
   finished="${counts%% *}"
   total="${counts##* }"
   if [ "$finished" != "$total" ]; then
-    die "proceed" "every batched migration finished" "finished=$finished/$total" "wait for migrations and re-run" "migrations unfinished"
+    die "proceed" "every batched migration complete (finished or finalized)" "complete=$finished/$total" "wait for migrations and re-run" "migrations unfinished"
   fi
-  log "proceed" "step 2/6: migrations all finished ($finished of $total)"
+  log "proceed" "step 2/6: migrations all complete ($finished of $total)"
   if ! check_health_gem "/health_check" "proceed health"; then
     die "proceed" "full backend stack reporting success" "health gem failed, see log" "fix the backends and re-run" "backend stack failing"
   fi
@@ -1972,4 +1981,8 @@ main() {
   fi
 }
 
-main "$@"
+# Sourcing this file (as check-rake-verdict.sh does) defines every function
+# without running; executing it runs the one-stop upgrade.
+if [ "${BASH_SOURCE[0]:-$0}" = "$0" ]; then
+  main "$@"
+fi

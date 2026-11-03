@@ -110,7 +110,7 @@ flowchart LR
 
 - **Binds:** CAP-2, CAP-4, CAP-5
 - **Prevents:** verdict/delta source divergence and silent table-format mis-parses
-- **Rule:** `gitlab-rake gitlab:background_migrations:status` via `exec -T` is the single source at all three sites (pre-gate leftover, monitor deltas, proceed verdict); parse contract is at least one `Database: <name>` banner with every other non-blank line shaped `status | csv`, else die; the verdict is every status `finished`; zero rows means clear; deltas come from finished-count movement; `/health_check/migrations` is observed and logged but never resets the hang timer
+- **Rule:** `gitlab-rake gitlab:background_migrations:status` via `exec -T` is the single source at all three sites (pre-gate leftover, monitor deltas, proceed verdict); parse contract is at least one `Database: <name>` banner with every other non-blank line shaped `status | csv`, else die; the verdict is every status `finished` or `finalized` (GitLab's terminal complete state; live 17.1.8 proves finalized rows occur — see demo-evidence-4-4/rake-status-17.1-leftovers.log); zero rows means clear; deltas come from done-count movement; `/health_check/migrations` is observed and logged but never resets the hang timer
 
 ### AD-11 — Verification is seeded runs + read-only plan mode [ADOPTED]
 

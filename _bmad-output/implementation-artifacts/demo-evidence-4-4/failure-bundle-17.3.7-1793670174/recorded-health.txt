@@ -1,0 +1,5 @@
+Recorded health lines replayed from the run log.
+2026-11-02T10:38:07Z phase=pre target=17.3.7 msg="health check: /-/health reads GitLab OK"
+2026-11-02T10:38:07Z phase=pre target=17.3.7 msg="health gem (before pause): success"
+2026-11-03T01:42:32Z phase=pre target=17.3.7 msg="health check: /-/health reads GitLab OK"
+2026-11-03T01:42:32Z phase=pre target=17.3.7 msg="health gem (before pause): success"

@@ -29,7 +29,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 11-02-2026 11:43
-last_updated: 11-02-2026 15:40
+last_updated: 11-03-2026 02:55
 project: deliverable-gitlab-update
 project_key: NOKEY
 tracking_system: file-system
@@ -57,10 +57,9 @@ development_status:
   3-3-hang-detection-with-fast-backend-halts: done
   epic-3-retrospective: optional
 
-  epic-4: in-progress
+  epic-4: done
   4-1-ordered-proceed-gate-proof-of-done: done
   4-2-recheck-unpause-and-success-close-out: done
   4-3-failure-bundle-and-rollback-story: done
-  # 4.4 code + runbook complete; live execution needs a connected host with seeded GitLab (see demo-runbook.md)
-  4-4-demonstrated-proof-on-the-seeded-instance: review
+  4-4-demonstrated-proof-on-the-seeded-instance: done
   epic-4-retrospective: optional
