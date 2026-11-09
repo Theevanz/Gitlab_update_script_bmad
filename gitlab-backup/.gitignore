@@ -1,0 +1,2 @@
+# Local operator config holds this host's key paths — never commit it.
+backup/backup.env

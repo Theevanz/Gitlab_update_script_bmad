@@ -1,0 +1,13 @@
+# age 1.3.2 — vendored static binary (linux-amd64) for backup/vendor/age.
+#
+# Publisher: https://github.com/FiloSottile/age/releases/tag/v1.3.2
+# Asset: age-v1.3.2-linux-amd64.tar.gz (contains the `age` binary)
+#
+# Publisher's published SHA-256 of the asset (verified at vendor time):
+#   cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10
+#
+# Vendored 2026-11-04 (Story 2.3): downloaded the asset, verified its SHA-256
+# against the publisher's published digest (GitHub release API, asset size
+# 19405817 bytes), extracted `age`, confirmed `age --version` reports v1.3.2.
+# SHA-256 of the extracted `age` binary itself:
+#   eb7dd1b518f0a307c99cd97782623c5321da049154b04acd2d98d21aa7bc9b2c
