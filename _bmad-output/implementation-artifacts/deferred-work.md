@@ -19,3 +19,6 @@
 - source_spec: `/home/admin/Desktop/reeve/deliverable-gitlab-update/gitlab-backup/_bmad-output/implementation-artifacts/spec-update-all-docs.md`
   summary: Fill test-gitlab-server README quick-start and demo-shell gaps (healthcheck verification, ports/URL/sign-in, sudo note, Docker prereqs, runbook path anchor, COMPOSE_SERVICE vs container_name, SEED_PROJECT_PATH definition).
   evidence: Low (verified pre-existing enhancement): first-boot guidance beyond the version-staleness scope of this change.
+- source_spec: `/home/admin/Desktop/reeve/deliverable-gitlab-update/_bmad-output/implementation-artifacts/spec-integrate-backup-script.md`
+  summary: Update test-gitlab-server/setup.sh to seed a pipeline `<ts>/` set (or drop the legacy seed block). The printed BACKUP_PATH export was fixed to $PWD/backups on 2026-11-10.
+  evidence: Medium (verified): setup.sh still seeds the legacy data/secrets layout the gate ignores; the gate self-heals via produce-once so runs proceed.

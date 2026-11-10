@@ -198,6 +198,11 @@ validate_config() {
   if [ ! -d "$GITLAB_DATA_DIR" ] || [ ! -r "$GITLAB_DATA_DIR" ] || [ ! -x "$GITLAB_DATA_DIR" ]; then
     die CONFIG "GitLab data dir not accessible: $GITLAB_DATA_DIR"
   fi
+  # Capture lists this dir and moves the fresh tarball out of it; without
+  # read+write+search the run would burn a create and die late at CAPTURE.
+  if [ ! -d "$GITLAB_DATA_DIR/backups" ] || [ ! -r "$GITLAB_DATA_DIR/backups" ] || [ ! -w "$GITLAB_DATA_DIR/backups" ] || [ ! -x "$GITLAB_DATA_DIR/backups" ]; then
+    die CONFIG "GitLab backups dir not accessible: $GITLAB_DATA_DIR/backups"
+  fi
   if [ ! -d "$BACKUP_DIR" ] || [ ! -w "$BACKUP_DIR" ]; then
     die CONFIG "BACKUP_DIR not writable: $BACKUP_DIR"
   fi

@@ -134,4 +134,4 @@ fi
 say "==> seed complete. Paste into the demo shell:"
 ABS=$(pwd)
 printf 'export GITLAB_URL=%q\nexport GITLAB_ADMIN_TOKEN=%q\nexport GITLAB_SMOKE_TOKEN=%q\nexport GITLAB_COMPOSE_FILE=%q\nexport COMPOSE_SERVICE=gitlab\nexport BACKUP_PATH=%q\nexport SEED_PROJECT_PATH=seed/demo\n' \
-  "$GITLAB_URL" "$GITLAB_ADMIN_TOKEN" "$GITLAB_SMOKE_TOKEN" "$ABS/docker-compose.yml" "$ABS/backups/latest"
+  "$GITLAB_URL" "$GITLAB_ADMIN_TOKEN" "$GITLAB_SMOKE_TOKEN" "$ABS/docker-compose.yml" "$ABS/backups"

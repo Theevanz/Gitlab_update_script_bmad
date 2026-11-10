@@ -98,3 +98,24 @@ teardown() {
   [ "$status" -eq 1 ]
   printf '%s\n' "$stderr" | grep -q "^FAIL:CONFIG:ts=-:"
 }
+
+@test "missing GitLab backups dir fails fast with FAIL:CONFIG" {
+  mkdir -p "$SANDBOX/emptydata"
+  export GITLAB_DATA_DIR="$SANDBOX/emptydata"
+  run --separate-stderr bash "$SCRIPT_UNDER_TEST"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$stderr" | grep -q "^FAIL:CONFIG:ts=-:.*backups dir"
+  [ -z "$output" ]
+}
+
+@test "unlistable GitLab backups dir fails fast with FAIL:CONFIG" {
+  if [ "$(id -u)" = "0" ]; then
+    skip "root bypasses permission bits"
+  fi
+  chmod 000 "$GITLAB_DATA_DIR/backups"
+  run --separate-stderr bash "$SCRIPT_UNDER_TEST"
+  chmod 755 "$GITLAB_DATA_DIR/backups"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$stderr" | grep -q "^FAIL:CONFIG:ts=-:.*backups dir"
+  [ -z "$output" ]
+}

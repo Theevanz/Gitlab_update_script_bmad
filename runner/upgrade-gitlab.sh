@@ -15,7 +15,8 @@
 #   GITLAB_SMOKE_TOKEN    token that may push to the seed project (needs the write_repository right)
 #   GITLAB_COMPOSE_FILE   path to the docker-compose.yml file that runs GitLab
 #   COMPOSE_SERVICE       service name of GitLab inside that compose file
-#   BACKUP_PATH           folder holding the backup (may be unset with --nobackup)
+#   BACKUP_PATH           folder holding timestamped backup sets (<ts>/ dirs,
+#                         may be unset with --nobackup)
 #   SEED_PROJECT_PATH     project path inside GitLab used for the clone-and-push
 #                         smoke test, for example "seed/demo"
 #
@@ -23,11 +24,19 @@
 #   GITLAB_IMAGE_REPO     image name without tag, default gitlab/gitlab-ce
 #   LOG_FILE              file log lines are added to, default ./upgrade-gitlab.log
 #   UPGRADE_PATH_FILE     stop list file, default upgrade_path.yml next to this script
+#   BACKUP_SCRIPT         backup producer script, default
+#                         ../gitlab-backup/backup/gitlab-backup.sh relative to this script
+#   BACKUP_ENV_FILE       producer env file, default
+#                         ../gitlab-backup/backup/backup.env relative to this script
 #
 # Flags:
 #   --plan      print the plan and rehearse every readable check, change nothing
-#   --nobackup  skip backup checks run-wide, for testing before the backup
-#               producer exists; the run then has no rollback path
+#   --nobackup  skip backup checks run-wide; the run then has no rollback path
+#
+# Backup gate: a fresh set (both members present, at most 24 h old) passes
+# with no side effects. On a live run the first pre-gate wave runs the
+# producer once when the backup is missing or stale, then re-checks;
+# --plan only reports it would run, and --nobackup skips backup entirely.
 #
 # The script reads top to bottom: settings, safety rails, logging, probes,
 # phases in run order, flag parsing, then main. It uses only Bash, curl,
@@ -68,6 +77,7 @@ HB_NET=""
 HB_FIN=0
 HB_TOT=0
 HB_DELTA=0
+BACKUP_FAIL_CAUSE=""
 
 # ---- strictness and traps: fail on typos, clean up on every exit ----
 
@@ -682,6 +692,20 @@ phase_validate() {
       || die "validate" "script folder known" "cannot find the script folder" "pass UPGRADE_PATH_FILE by hand and re-run" "cannot find the script folder"
     UPGRADE_PATH_FILE="$dir_of_script/upgrade_path.yml"
   fi
+  if [ -z "${BACKUP_SCRIPT:-}" ]; then
+    if [ -z "${dir_of_script:-}" ]; then
+      dir_of_script="$(script_dir)" \
+        || die "validate" "script folder known" "cannot find the script folder" "pass BACKUP_SCRIPT by hand and re-run" "cannot find the script folder"
+    fi
+    BACKUP_SCRIPT="$dir_of_script/../gitlab-backup/backup/gitlab-backup.sh"
+  fi
+  if [ -z "${BACKUP_ENV_FILE:-}" ]; then
+    if [ -z "${dir_of_script:-}" ]; then
+      dir_of_script="$(script_dir)" \
+        || die "validate" "script folder known" "cannot find the script folder" "pass BACKUP_ENV_FILE by hand and re-run" "cannot find the script folder"
+    fi
+    BACKUP_ENV_FILE="$dir_of_script/../gitlab-backup/backup/backup.env"
+  fi
   touch "$LOG_FILE" \
     || die "validate" "writable log file" "cannot write LOG_FILE=$LOG_FILE" "fix LOG_FILE and re-run" "log file is not writable"
 
@@ -690,6 +714,12 @@ phase_validate() {
   [ -f "$UPGRADE_PATH_FILE" ] || bad_paths="$bad_paths UPGRADE_PATH_FILE=$UPGRADE_PATH_FILE"
   if [ "$SKIP_BACKUP" = "0" ]; then
     [ -d "${BACKUP_PATH:-}" ] || bad_paths="$bad_paths BACKUP_PATH=${BACKUP_PATH:-}"
+    if [ ! -f "$BACKUP_SCRIPT" ] || [ ! -x "$BACKUP_SCRIPT" ]; then
+      bad_paths="$bad_paths BACKUP_SCRIPT=$BACKUP_SCRIPT"
+    fi
+    if [ -e "$BACKUP_ENV_FILE" ] && { [ ! -f "$BACKUP_ENV_FILE" ] || [ ! -r "$BACKUP_ENV_FILE" ]; }; then
+      bad_paths="$bad_paths BACKUP_ENV_FILE=$BACKUP_ENV_FILE"
+    fi
   fi
   if [ -n "$bad_paths" ]; then
     die "validate" "all referenced paths exist" "missing:${bad_paths}" "fix the paths and re-run" "referenced files are missing"
@@ -723,6 +753,12 @@ phase_validate() {
 
   log "validate" "settings ok: url=$GITLAB_URL repo=$GITLAB_IMAGE_REPO service=$COMPOSE_SERVICE json_reader=$PARSER"
   log "validate" "tokens: admin needs the manage_runner right, smoke needs the write_repository right"
+  if [ "$SKIP_BACKUP" = "0" ]; then
+    log "validate" "backup producer: script=$BACKUP_SCRIPT env_file=$BACKUP_ENV_FILE sets_root=$BACKUP_PATH"
+    if [ ! -e "$BACKUP_ENV_FILE" ]; then
+      log "validate" "no producer env file at $BACKUP_ENV_FILE, producer falls back to environment and built-in defaults"
+    fi
+  fi
 }
 
 extract_stops() {
@@ -1014,22 +1050,154 @@ check_rake_leftover() {
   return 0
 }
 
+newest_backup_set() {
+  # Print the newest complete set dirname (<ts>) under BACKUP_PATH, or
+  # return 1 when none exists. Complete means the name matches YYYYMMDD-
+  # HHMMSS and the dir holds both set.tar.age and SHA256SUMS. Anything
+  # else (legacy epoch dirs, stray files, incomplete sets) is ignored.
+  local entry base newest
+  newest=""
+  for entry in "$BACKUP_PATH"/*/; do
+    [ -d "$entry" ] || continue
+    base="${entry%/}"
+    base="${base##*/}"
+    case "$base" in
+      [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9])
+        ;;
+      *)
+        continue
+        ;;
+    esac
+    [ -f "$BACKUP_PATH/$base/set.tar.age" ] || continue
+    [ -f "$BACKUP_PATH/$base/SHA256SUMS" ] || continue
+    if [ -z "$newest" ] || [ "$base" \> "$newest" ]; then
+      newest="$base"
+    fi
+  done
+  if [ -z "$newest" ]; then
+    return 1
+  fi
+  printf '%s\n' "$newest"
+}
+
+set_epoch() {
+  # Print epoch seconds for a <ts> dirname (UTC YYYYMMDD-HHMMSS), or
+  # return 1 when it is not a real calendar timestamp.
+  local ts epoch back
+  ts="$1"
+  epoch="$(date -u -d "${ts:0:8} ${ts:9:2}:${ts:11:2}:${ts:13:2}" +%s 2>/dev/null)" || return 1
+  case "$epoch" in
+    ''|*[!0-9]*) return 1 ;;
+  esac
+  back="$(date -u -d "@$epoch" +%Y%m%d-%H%M%S 2>/dev/null)" || return 1
+  if [ "$back" != "$ts" ]; then
+    return 1
+  fi
+  printf '%s\n' "$epoch"
+}
+
+check_backup_set() {
+  # Read-only check: the newest complete set is present and at most 24 h
+  # old. Presence only, local only: the producer hash-verified each set at
+  # creation, so the gate trusts presence plus freshness and never checks
+  # the NAS. Age is measured against the check-time clock, not RUN_START:
+  # a set this run just produced is definitionally fresh, while a
+  # RUN_START-pinned age would mark it future-dated and the re-check could
+  # never pass. Logs the verdict and fills BACKUP_FAIL_CAUSE on failure.
+  # Returns 1 when the contract breaks. Never runs the producer.
+  local newest created age ahead now
+  BACKUP_FAIL_CAUSE=""
+  if ! newest="$(newest_backup_set)"; then
+    BACKUP_FAIL_CAUSE="missing: no complete backup set under $BACKUP_PATH (need <YYYYMMDD-HHMMSS>/ holding set.tar.age + SHA256SUMS)"
+    log "$PHASE" "backup check: $BACKUP_FAIL_CAUSE"
+    return 1
+  fi
+  if ! created="$(set_epoch "$newest")"; then
+    BACKUP_FAIL_CAUSE="missing: newest set $newest has an unparsable timestamp"
+    log "$PHASE" "backup check: $BACKUP_FAIL_CAUSE"
+    return 1
+  fi
+  if ! now="$(date +%s 2>/dev/null)"; then
+    BACKUP_FAIL_CAUSE="missing: cannot read the system clock"
+    log "$PHASE" "backup check: $BACKUP_FAIL_CAUSE"
+    return 1
+  fi
+  case "$now" in
+    ''|*[!0-9]*)
+      BACKUP_FAIL_CAUSE="missing: cannot read the system clock"
+      log "$PHASE" "backup check: $BACKUP_FAIL_CAUSE"
+      return 1
+      ;;
+  esac
+  age=$((now - created))
+  if [ "$age" -lt 0 ]; then
+    ahead=$((0 - age))
+    BACKUP_FAIL_CAUSE="stale: newest set $newest is dated ${ahead}s in the future"
+    log "$PHASE" "backup check: $BACKUP_FAIL_CAUSE"
+    return 1
+  fi
+  if [ "$age" -gt 86400 ]; then
+    BACKUP_FAIL_CAUSE="stale: newest set $newest is ${age}s old, older than 24 h"
+    log "$PHASE" "backup check: $BACKUP_FAIL_CAUSE"
+    return 1
+  fi
+  log "$PHASE" "backup check: newest set $newest fresh, ${age}s old"
+  return 0
+}
+
+run_backup_producer() {
+  # Run the producer once, zero-arg, with its 13-var registry from the
+  # environment and BACKUP_ENV_FILE. BACKUP_DIR is pinned to BACKUP_PATH
+  # so the new set lands where the gate checks. Logs the producer output
+  # line by line, then returns the producer exit code. Never retries.
+  local out rc line
+  log "$PHASE" "backup producer: running once: $BACKUP_SCRIPT (env file: $BACKUP_ENV_FILE)"
+  out=""
+  if out="$(ENV_FILE="$BACKUP_ENV_FILE" BACKUP_DIR="$BACKUP_PATH" "$BACKUP_SCRIPT" 2>&1)"; then
+    rc=0
+  else
+    rc=$?
+  fi
+  while IFS= read -r line || [ -n "$line" ]; do
+    log "$PHASE" "producer: $(one_line "$line")"
+  done <<< "$out"
+  if [ "$rc" != "0" ]; then
+    log "$PHASE" "backup producer: failed with exit $rc"
+    return "$rc"
+  fi
+  log "$PHASE" "backup producer: done with exit 0"
+  return 0
+}
+
 verify_backup() {
-  # Prove the backup artifact exists and is fresh: data/, secrets/, and a
-  # BACKUP_CREATED_AT epoch no older than 24 h before this run started.
-  # Skips loudly under --nobackup. Returns 1 when the contract breaks.
-  local missing created age
+  # Integrated gate: check, produce-once when missing or stale, re-check.
+  # Usage: verify_backup [produce|check]. A fresh set passes with zero side
+  # effects. Produce runs only on live runs in the first pre-gate wave
+  # (mode produce); every other wave, and --plan, check only. Skips loudly
+  # under --nobackup. Returns 1 when the contract breaks.
+  local mode
+  mode="${1:-check}"
   if [ "$SKIP_BACKUP" = "1" ]; then log "$PHASE" "backup verification skipped (--nobackup)"; return 0; fi
-  missing=""
-  [ -d "$BACKUP_PATH/data" ] || missing="$missing data/"
-  [ -d "$BACKUP_PATH/secrets" ] || missing="$missing secrets/"
-  [ -f "$BACKUP_PATH/BACKUP_CREATED_AT" ] || missing="$missing BACKUP_CREATED_AT"
-  if [ -n "$missing" ]; then log "$PHASE" "backup check: missing under $BACKUP_PATH:$missing"; return 1; fi
-  created="$(cat "$BACKUP_PATH/BACKUP_CREATED_AT" 2>/dev/null || true)"
-  if ! [ "$created" -eq "$created" ] 2>/dev/null; then log "$PHASE" "backup check: BACKUP_CREATED_AT is not epoch seconds"; return 1; fi
-  age=$((RUN_START - created))
-  if [ "$age" -gt 86400 ]; then log "$PHASE" "backup check: backup is $age seconds old, older than 24 h"; return 1; fi
-  log "$PHASE" "backup check: artifact fresh, $age seconds old"
+  if check_backup_set; then
+    return 0
+  fi
+  if [ "$PLAN_ONLY" = "1" ]; then
+    log "$PHASE" "backup check: live run would run the backup producer once, then re-check ($BACKUP_SCRIPT)"
+    return 1
+  fi
+  if [ "$mode" != "produce" ]; then
+    return 1
+  fi
+  log "$PHASE" "backup check: producing one fresh set before pause"
+  if ! run_backup_producer; then
+    log "$PHASE" "backup check: producer run failed, see producer lines above"
+    return 1
+  fi
+  if check_backup_set; then
+    log "$PHASE" "backup check: re-check passes after producer run"
+    return 0
+  fi
+  return 1
 }
 
 preview_runners() {
@@ -1125,7 +1293,7 @@ plan_mode() {
       log "plan" "check pre-backup result=pass"
     fi
   else
-    die "plan" "fresh backup artifact present" "backup check failed, see log" "take a fresh backup and re-run" "preview backup check failed"
+    die "plan" "fresh backup artifact present" "backup check failed (${BACKUP_FAIL_CAUSE:-see log})" "live run would run the backup producer once, then re-check" "preview backup check failed"
   fi
   log "plan" "check proceed-version result=pending detail=runs after the container change"
   log "plan" "check proceed-migrations result=pending detail=runs after the container change"
@@ -1138,18 +1306,20 @@ plan_mode() {
 }
 
 pregate_checks() {
-  # Run the four read-only gate checks: app health, backend gem, migration
-  # leftover, backup contract. Usage: pregate_checks <wave label for logs>.
+  # Run the four gate checks: app health, backend gem, migration leftover,
+  # backup contract. Usage: pregate_checks <wave label> [produce|check].
   # Runs every check and names each failure (each check logs its own
   # evidence), then returns 1 when any failed so the caller halts once with
-  # the full picture. One definition serves both gate waves so they can
-  # never drift apart.
-  local failed
+  # the full picture. One definition serves every gate wave so they can
+  # never drift apart; only the first pre-gate wave passes produce, every
+  # later wave checks the backup without producing.
+  local failed mode
+  mode="${2:-check}"
   failed=""
   check_app_health || failed="$failed health"
   check_health_gem "/health_check" "health gem ($1)" || failed="$failed gem"
   check_rake_leftover || failed="$failed leftover"
-  verify_backup || failed="$failed backup"
+  verify_backup "$mode" || failed="$failed backup"
   if [ -n "$failed" ]; then
     log "$PHASE" "gate checks failed:$failed, see evidence above"
     return 1
@@ -1193,7 +1363,7 @@ phase_pregate() {
   # backed up before CI is touched. Any failure stops here, runners intact.
   PHASE="pre"
   GATE="pre"
-  if ! pregate_checks "before pause"; then
+  if ! pregate_checks "before pause" "produce"; then
     die "pre" "healthy, clean, backed-up instance before CI is touched" "pre-pause checks failed, see log" "fix the instance and re-run" "pre-upgrade gate failed"
   fi
   log "pre" "pre-pause checks pass, CI may be quieted"
@@ -1926,18 +2096,28 @@ Required settings (environment values):
   GITLAB_SMOKE_TOKEN    token that may push to the seed project (needs the write_repository right)
   GITLAB_COMPOSE_FILE   path to the docker-compose.yml file that runs GitLab
   COMPOSE_SERVICE       service name of GitLab inside that compose file
-  BACKUP_PATH           folder holding the backup (may be unset with --nobackup)
+  BACKUP_PATH           folder holding timestamped backup sets (<ts>/ dirs,
+                        may be unset with --nobackup)
   SEED_PROJECT_PATH     project path inside GitLab for the smoke test, e.g. seed/demo
 
 Optional settings (empty counts as unset):
   GITLAB_IMAGE_REPO     image name without tag (default gitlab/gitlab-ce)
   LOG_FILE              file log lines are added to (default ./upgrade-gitlab.log)
   UPGRADE_PATH_FILE     stop list file (default upgrade_path.yml next to this script)
+  BACKUP_SCRIPT         backup producer script (default
+                        ../gitlab-backup/backup/gitlab-backup.sh relative to this script)
+  BACKUP_ENV_FILE       producer env file (default
+                        ../gitlab-backup/backup/backup.env relative to this script)
 
 Flags:
   --plan      print the plan and rehearse every readable check, change nothing
   --nobackup  skip backup checks run-wide; the run then has no rollback path
   -h, --help  print this help and exit
+
+Backup gate: a fresh set (both members present, at most 24 h old) passes
+with no side effects. On a live run the first pre-gate wave runs the
+producer once when the backup is missing or stale, then re-checks;
+--plan only reports it would run, and --nobackup skips backup entirely.
 HELP
 }
 

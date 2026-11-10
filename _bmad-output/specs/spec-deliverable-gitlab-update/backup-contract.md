@@ -1,17 +1,19 @@
 # Backup Contract
 
-Cross-deliverable contract between this upgrade runner (consumer, defines the contract) and the follow-on backup script (producer, fulfills it). The demo uses a hand-made backup satisfying this contract — stated, not hidden.
+Cross-deliverable contract between this upgrade runner (consumer, defines the contract) and the backup producer (fulfills it). The backup is a timestamped pipeline set; the hand-made demo layout (`data/` + `secrets/` + `BACKUP_CREATED_AT`) is not recognized and counts as missing.
 
 ## Producer must deliver
 
-- Docker volume snapshots under `$BACKUP_PATH/data/` plus secrets/config copies under `$BACKUP_PATH/secrets/`.
-- A `BACKUP_CREATED_AT` file holding the artifact timestamp as epoch seconds.
-- The demo uses a hand-made backup satisfying this layout — stated, not hidden.
+- Timestamped set dirs under `$BACKUP_PATH/`: `<YYYYMMDD-HHMMSS>/` (UTC) holding exactly `set.tar.age` + `SHA256SUMS` as one unit; both members ship and prune together, never piecemeal.
+- Each set hash-verified at creation (HASH) and after ship (SHIP); the gate trusts presence plus freshness and never re-hashes.
+- No partial sets: any failure leaves no published set behind.
 
-## Consumer verifies (~15 lines, verification only)
+## Consumer verifies (integrated gate, local only)
 
-1. Artifact check: `data/`, `secrets/`, and `BACKUP_CREATED_AT` exist under `$BACKUP_PATH`.
-2. Freshness check: `RUN_START - BACKUP_CREATED_AT <= 86400` (24 hours), with `RUN_START` captured as the script's first statement. Halt if older.
-3. Halt naming the missing or stale item if either check fails; the Phase 1 recon step never proceeds without a valid backup (unless `--nobackup` is passed for pre-producer testing, in which case the skip is logged loudly).
+1. Newest set: the lexicographic-max `<ts>` dirname under `$BACKUP_PATH` matching `^[0-9]{8}-[0-9]{6}$` with both members present. Anything else (legacy epoch dirs, stray files, incomplete sets) counts as missing.
+2. Freshness: `0 <= CHECK_TIME - <ts> <= 86400` (24 hours), with `CHECK_TIME` captured when the gate runs; future timestamps fail. (Check time, not `RUN_START`: a set this run just produced is definitionally fresh, while a `RUN_START`-pinned age would mark it future-dated and the re-check could never pass.)
+3. Produce-once: on a live run, the first pre-gate wave (before pause) runs the producer once, zero-arg, when the set is missing or stale, then re-checks; the gate passes only if the re-check is green. No retry inside one run.
+4. `--plan` never runs the producer: rehearsal reports the live run would run it, then halts naming the backup cause. `--nobackup` skips backup loudly with no check and no run. Later waves (post-pause) are check-only and never produce.
+5. Local only: the gate never checks the NAS; the producer's exit code gates the produce step.
 
-Backup implementation itself is explicitly out of this deliverable.
+`$BACKUP_PATH` is the sets root holding `<ts>/` dirs. Producer paths are optional `BACKUP_SCRIPT` and `BACKUP_ENV_FILE` (runner-relative defaults); the runner pins `BACKUP_DIR` to `$BACKUP_PATH` for the produce run so the new set lands where the gate checks.
