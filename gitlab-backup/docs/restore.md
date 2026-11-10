@@ -6,9 +6,10 @@ delete as a unit — never handle one without the other. Restore is manual and
 deliberately so: it runs rarely, under stress, and every step below deserves a
 human pair of eyes.
 
-Demo status: this procedure is authored and reviewed; the live restore
-demonstration against the test instance is an operator-executed step and is
-still pending. Record the date and set timestamp here once performed.
+Demo status: backup pipeline verified 2026-11-10 (set 20261110-024852
+sealed locally and on the NAS, `sha256sum -c` OK both sides); the live
+restore demonstration against the test instance is an operator-executed step
+and is still pending. Record the date and set timestamp here once performed.
 
 ## Prerequisites
 
@@ -24,7 +25,8 @@ still pending. Record the date and set timestamp here once performed.
 1. Fetch the set as a unit. Copy the whole `<ts>/` directory (blob plus hash);
    never copy one file without the other.
 2. Verify integrity before touching anything:
-   `cd <ts> && sha256sum -c SHA256SUMS`. Proceed only if it passes.
+   `cd <ts> && sha256sum -c SHA256SUMS` — expect `set.tar.age: OK`.
+   Proceed only if it passes.
 3. Decrypt on a trusted machine: `age --decrypt -i <nas-private-key> -o
    set.tar set.tar.age`. (`age` refuses tampered ciphertext, so a successful
    decrypt is a second integrity proof on top of the hash.)
@@ -34,9 +36,10 @@ still pending. Record the date and set timestamp here once performed.
    file — restore that exact GitLab version, never latest.
 5. Stop the GitLab container, then restore the data with GitLab's native tool
    (`gitlab-backup restore`), following the version's official docs.
-6. Restore `config/` over the config volume (`gitlab.rb`,
+6. Restore `config/` over `GITLAB_CONFIG_DIR` (`gitlab.rb`,
    `gitlab-secrets.json`, TLS certs, SSH host keys), and the compose file plus
-   `.env` to their documented paths.
+   `.env` beside `COMPOSE_FILE` (a missing `.env` there fails the next backup
+   with `FAIL:BUNDLE`).
 7. Start the pinned-version stack (`docker compose up -d`), then verify: sign
    in, open a project, and confirm uploads and CI history are present.
 
@@ -57,3 +60,12 @@ still pending. Record the date and set timestamp here once performed.
 - **Freshness and fitness.** Whether a set is fresh or fit for a given purpose
   is judged by its consumers (notably the upgrade runner's pre-migration
   check), never by this producer.
+
+## POC operating notes (test checkout, 2026-11-10)
+
+- Container: `test-gitlab-server` (`gitlab/gitlab-ce:17.5.5-ce.0`, healthy).
+- NAS: `192.168.124.115`, user `backup`, remote root `/backups/gitlab`.
+- Keys live on the host under `test-gitlab-server/keys/`: Ed25519 SSH private
+  (600) for transport, single-`age1`-line public file for encryption.
+- Run with `sudo`: volume files are owned by `nobody` with mode `600`,
+  and the NAS host key is in root's `known_hosts`.

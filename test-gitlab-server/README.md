@@ -1,4 +1,4 @@
-# test-gitlab-server — fake seeded GitLab 16.11 for the upgrade demo
+# test-gitlab-server — seeded GitLab for the upgrade demo (currently 17.5.5)
 
 Everything lives in this folder: compose file, volumes, backup, settings.
 
@@ -15,9 +15,10 @@ First run pulls ~1.3GB and boots ~5–10 min. Re-runs are safe.
 
 ## Layout
 
-- `docker-compose.yml` — pinned `gitlab/gitlab-ce:16.11.10-ce.0`
+- `docker-compose.yml` — pinned `gitlab/gitlab-ce:17.5.5-ce.0` (`container_name: test-gitlab-server`)
 - `volumes/{config,logs,data}` — bind-mounted GitLab data (all in this folder)
-- `backups/<stamp>/` + `backups/latest` — hand-made backup (stated, not hidden)
+- `backups/` — legacy hand-made seed (`1793610538` + `latest`) plus `gitlab-backup` pipeline sets (`<YYYYMMDD-HHMMSS>/` holding `set.tar.age` + `SHA256SUMS`)
+- `keys/` — backup transport key (Ed25519 private, 600) + NAS age public file; private material must never be committed
 - `.env` — real settings incl. tokens (gitignored, never commit)
 - `healthcheck.sh` — liveness probe: container + 4 health endpoints + admin API auth (exit 0 = healthy, 1 = unhealthy)
 
@@ -51,3 +52,5 @@ docker compose down && rm -rf volumes/ backups/   # full wipe
   documented loud-warning path instead of jobs-flowing confirmation.
 - Admin token uses `api` scope (covers the manage_runner right the
   runner needs); smoke token uses read/write_repository.
+- Full wipe deletes local pipeline sets too (`backups/`), while `keys/`,
+  `.env`, and NAS copies survive.
