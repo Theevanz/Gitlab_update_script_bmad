@@ -1,15 +1,15 @@
 ---
 stepsCompleted: ["step-01-validate-prerequisites", "step-02-design-epics", "step-03-create-stories", "step-04-final-validation"]
 inputDocuments:
-  - _bmad-output/prds/prd-gitlab-backup-2026-11-03/prd.md
-  - _bmad-output/prds/prd-gitlab-backup-2026-11-03/addendum.md
+  - ../_bmad-output/planning-artifacts/prds/prd-gitlab-backup-2026-11-03/prd.md
+  - ../_bmad-output/planning-artifacts/prds/prd-gitlab-backup-2026-11-03/addendum.md
   - _bmad-output/specs/spec-gitlab-backup/SPEC.md
   - _bmad-output/specs/spec-gitlab-backup/backup-contents.md
   - _bmad-output/specs/spec-gitlab-backup/capture-and-transport.md
   - _bmad-output/specs/spec-gitlab-backup/retention-policy.md
-  - _bmad-output/architecture/architecture-gitlab-backup-2026-11-03/ARCHITECTURE-SPINE.md
-  - brief-gitlab-backup-2026-11-03/brief.md
-  - brief-gitlab-backup-2026-11-03/addendum.md
+  - ../_bmad-output/planning-artifacts/architecture/architecture-gitlab-backup-2026-11-03/ARCHITECTURE-SPINE.md
+  - ../_bmad-output/planning-artifacts/briefs/brief-gitlab-backup-2026-11-03/brief.md
+  - ../_bmad-output/planning-artifacts/briefs/brief-gitlab-backup-2026-11-03/addendum.md
 ---
 
 # gitlab-backup - Epic Breakdown

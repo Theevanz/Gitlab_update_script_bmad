@@ -83,10 +83,10 @@ provisioning.
 
 **Inventory scanned:**
 
-- `brief-gitlab-backup-2026-11-03/brief.md`, `addendum.md`
-- `_bmad-output/prds/prd-gitlab-backup-2026-11-03/prd.md`, `addendum.md`
+- `../_bmad-output/planning-artifacts/briefs/brief-gitlab-backup-2026-11-03/brief.md`, `addendum.md`
+- `../_bmad-output/planning-artifacts/prds/prd-gitlab-backup-2026-11-03/prd.md`, `addendum.md`
 - `_bmad-output/specs/spec-gitlab-backup/SPEC.md`, `backup-contents.md`, `capture-and-transport.md`, `retention-policy.md`
-- `_bmad-output/architecture/architecture-gitlab-backup-2026-11-03/ARCHITECTURE-SPINE.md`
+- `../_bmad-output/planning-artifacts/architecture/architecture-gitlab-backup-2026-11-03/ARCHITECTURE-SPINE.md`
 - `_bmad-output/epics.md` (FR-1–FR-11, NFR-1–NFR-3, FR coverage map)
 - `docs/` (project_knowledge): absent, skipped gracefully — no decisions depend on it
 - No UX artifact: correct, bash CLI with no UI and no operator interaction surface

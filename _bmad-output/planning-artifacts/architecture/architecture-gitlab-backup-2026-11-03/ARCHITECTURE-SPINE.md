@@ -9,8 +9,11 @@ status: final
 created: '2026-11-03'
 updated: '2026-11-03'
 binds: ['CAP-1', 'CAP-2', 'CAP-3', 'CAP-4', 'CAP-5', 'CAP-6', 'CAP-7']
-sources: ['_bmad-output/specs/spec-gitlab-backup/SPEC.md']
-companions: ['../../../specs/spec-gitlab-backup/SPEC.md', '../../../specs/spec-gitlab-backup/backup-contents.md', '../../../specs/spec-gitlab-backup/capture-and-transport.md', '../../../specs/spec-gitlab-backup/retention-policy.md']
+sources:
+  - gitlab-backup/_bmad-output/specs/spec-gitlab-backup/SPEC.md
+  - gitlab-backup/_bmad-output/specs/spec-gitlab-backup/backup-contents.md
+  - gitlab-backup/_bmad-output/specs/spec-gitlab-backup/capture-and-transport.md
+  - gitlab-backup/_bmad-output/specs/spec-gitlab-backup/retention-policy.md
 ---
 
 # Architecture Spine — gitlab-backup

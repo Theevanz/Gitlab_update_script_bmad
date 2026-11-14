@@ -5,8 +5,8 @@ companions:
   - capture-and-transport.md
   - retention-policy.md
 sources:
-  - ../../../brief-gitlab-backup-2026-11-03/brief.md
-  - ../../../brief-gitlab-backup-2026-11-03/addendum.md
+  - ../../../../_bmad-output/planning-artifacts/briefs/brief-gitlab-backup-2026-11-03/brief.md
+  - ../../../../_bmad-output/planning-artifacts/briefs/brief-gitlab-backup-2026-11-03/addendum.md
 ---
 
 > **Canonical contract.** This SPEC and the files in `companions:` are the complete, preservation-validated contract for what to build, test, and validate. Source documents listed in frontmatter are for traceability — consult them only if you need narrative rationale or prose color this contract intentionally omits.
